@@ -1,0 +1,37 @@
+{
+  "name": "pulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Daily market intelligence for the Solana and Robinhood Chain trenches: runners, deaths, holders, smart money, KOLs, narratives. Records everything.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.ts",
+    "start": "node src/main.ts",
+    "collect": "node src/main.ts --once",
+    "report": "node src/report/cli.ts",
+    "db:migrate": "node src/db/migrate.ts",
+    "db:up": "docker compose up -d db",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@hono/node-server": "^2.1.4",
+    "bs58": "^6.0.0",
+    "hono": "^4.13.13",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/pg": "^8.23.1",
+    "echarts": "^6.1.0",
+    "lightweight-charts": "^5.2.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3"
+  }
+}
