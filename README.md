@@ -1,5 +1,16 @@
 # Pulse
 
+[![npm](https://img.shields.io/npm/v/pulse-trenches)](https://www.npmjs.com/package/pulse-trenches)
+[![license](https://img.shields.io/github/license/nirholas/pulse)](LICENSE)
+[![MCP](https://img.shields.io/badge/MCP-server-blue)](https://nirholas.github.io/pulse/docs/mcp.html)
+
+Site and docs: https://nirholas.github.io/pulse/
+
+```bash
+npx pulse-trenches            # collector, API and dashboard on :8787
+npx -y -p pulse-trenches pulse-mcp   # MCP server for agents (set PULSE_URL)
+```
+
 Personal market intelligence for the Solana and Robinhood Chain trenches. Pulse watches every launch, runner and death, scores wallets, labels KOLs, classifies tokens by tech versus meme, writes a daily newsletter to Telegram, and archives everything in Postgres so the history can later train a trading bot.
 
 ## What it records

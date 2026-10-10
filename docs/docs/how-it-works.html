@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it works | Pulse docs</title>
+<meta name="description" content="How Pulse collects, classifies and scores: the collection cycle, the Solana firehose, lifecycle status rules, tech versus meme classification, wallet scoring and which trades are kept.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/how-it-works.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How it works | Pulse docs">
+<meta property="og:description" content="How Pulse collects, classifies and scores: the collection cycle, the Solana firehose, lifecycle status rules, tech versus meme classification, wallet scoring and which trades are kept.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/how-it-works.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="How it works | Pulse docs">
+<meta name="twitter:description" content="How Pulse collects, classifies and scores: the collection cycle, the Solana firehose, lifecycle status rules, tech versus meme classification, wallet scoring and which trades are kept.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"How it works","description":"How Pulse collects, classifies and scores: the collection cycle, the Solana firehose, lifecycle status rules, tech versus meme classification, wallet scoring and which trades are kept.","url":"https://nirholas.github.io/pulse/docs/how-it-works.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/how-it-works.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"How it works","item":"https://nirholas.github.io/pulse/docs/how-it-works.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html" aria-current="page">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">How it works</li></ol></nav>
+<h1>How it works</h1>
+<p class="lead">Pulse is a loop and a stream writing to one archive. This page states every rule and threshold the code actually uses, so you can predict what a token's status or a wallet's score will be and change the rule if you disagree.</p>
+<h2 id="the-two-inputs">The two inputs<a class="anchor" href="#the-two-inputs" aria-label="Link to this section">#</a></h2>
+<p>Everything in the archive arrives by one of two paths.</p>
+<ul>
+<li><strong>The collection cycle</strong> runs every <code>SNAPSHOT_EVERY_MIN</code> minutes (default 5). It reads discovery lists and prices from Jupiter, DexScreener and GeckoTerminal, plus pump.fun's own feed, and reads Robinhood Chain launchpad factory logs over JSON-RPC. It writes one snapshot per token seen, updates each token's latest state, writes chain-wide totals, then runs lifecycle status and classification.</li>
+<li><strong>The firehose</strong> is a WebSocket log subscription on Solana RPC. It decodes every pump.fun bonding-curve trade, PumpSwap trade, token creation, graduation and pool creation as it happens. It writes launches and graduations immediately, keeps rolling per-token trade heat in memory, and persists a selective subset of trades.</li>
+</ul>
+<p>One process runs both, plus the API, the dashboard and the scheduled jobs. See the diagram on the <a href="../index.html#how-it-works">home page</a>.</p>
+
+<h2 id="a-collection-cycle-step-by-step">A collection cycle, step by step<a class="anchor" href="#a-collection-cycle-step-by-step" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>Refresh native prices (SOL and ETH in USD).</li>
+<li>Fetch observations: Jupiter lists (<code>recent</code> and the <code>toptrending</code>, <code>toptraded</code> and <code>toporganicscore</code> categories over 5m, 1h, 6h and 24h), DexScreener boosts, latest boosts, profiles and takeovers, GeckoTerminal trending and new pools, pump.fun lists, and Robinhood Chain tokens.</li>
+<li>Merge observations of the same token. Several providers describing one token in a cycle become one snapshot, later providers filling gaps, with the source names joined by <code>+</code>.</li>
+<li>Upsert <code>tokens</code>, write <code>token_snapshots</code>, <code>list_appearances</code> and <code>pairs</code>, and track each token's all-time high market cap.</li>
+<li>Write <code>market_snapshots</code> per chain.</li>
+<li>Recompute lifecycle status.</li>
+<li>Classify tokens that are new or changed.</li>
+<li>Run due jobs: wallet label import, wallet scoring, the newsletter.</li>
+</ol>
+<p>A source that fails is logged and skipped. The rest of the cycle still completes, and the failure count is stored in <code>collector:last-cycle</code>.</p>
+
+<h2 id="token-lifecycle">Token lifecycle<a class="anchor" href="#token-lifecycle" aria-label="Link to this section">#</a></h2>
+<p>Every token has a <code>status</code>: <code>new</code>, <code>running</code>, <code>graduated</code>, <code>dying</code> or <code>dead</code>. Status is recomputed in SQL each cycle with these exact rules. When more than one rule matches, the higher row wins.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Status</th><th>A token gets it when</th></tr></thead>
+<tbody>
+<tr><td><code>dead</code></td><td>Any of: its all-time high market cap was at least $20K and market cap is now 10% of that or less. Liquidity is under $1K and its ATH was at least $20K. It has had no snapshot for 3 days, 24h volume under $1K and is not <code>new</code>.</td></tr>
+<tr><td><code>dying</code></td><td>Any of: ATH at least $50K and market cap now 30% of ATH or less. Peak 24h volume at least $100K and current 24h volume under 10% of that peak.</td></tr>
+<tr><td><code>running</code></td><td>All of: market cap at least $100K, 24h volume at least $50K, a new ATH within the last 24 hours, and market cap at least 60% of ATH.</td></tr>
+<tr><td><code>graduated</code></td><td>It has a graduation time (it left its bonding curve for a DEX pool) and is currently <code>new</code> or <code>running</code>.</td></tr>
+<tr><td><code>new</code></td><td>The default for anything seen that matches none of the above.</td></tr>
+</tbody></table></div>
+<ul>
+<li>Precedence is <code>dead</code>, then <code>dying</code>, then <code>running</code>, then <code>graduated</code>.</li>
+<li><code>dead</code> is terminal. A token never leaves it.</li>
+<li>Tokens with no market cap yet are skipped, not marked.</li>
+<li>Every change is a transition. When a token becomes <code>running</code>, the firehose flushes its early buyers (see below).</li>
+<li>The thresholds live in <code>src/intel/status.ts</code>, and the API returns them as <code>rules</code> in <a href="api.html#get-api-overview"><code>/api/overview</code></a>.</li>
+</ul>
+
+<h2 id="tech-versus-meme-classification">Tech versus meme classification<a class="anchor" href="#tech-versus-meme-classification" aria-label="Link to this section">#</a></h2>
+<p>Pulse is built for a reader who cares about technology more than memes, so every token gets a <code>category</code> and a <code>tech_score</code> between 0 and 1. It is a transparent keyword and signal scorer, not a model, so a result can always be explained.</p>
+<h3 id="scoring">Scoring<a class="anchor" href="#scoring" aria-label="Link to this section">#</a></h3>
+<ol>
+<li>Start at 0.4.</li>
+<li>Add 0.2 for each technology category the token's name, symbol and description match, capped at three matches. The vocabulary has 13 technology categories.</li>
+<li>Subtract 0.2 for each meme category matched, capped at three. The meme categories are <code>meme</code>, <code>animal</code>, <code>culture</code>, <code>politics</code> and <code>celebrity</code>.</li>
+<li>Add signals of substance: +0.15 for a website, +0.1 for a description over 120 characters (+0.05 more over 300), +0.1 if the token is verified, +0.15 for documentation-style words, +0.05 for a verified, strict, liquid-staking or community tag.</li>
+<li>Clamp to the range 0 to 1.</li>
+</ol>
+<h3 id="category">Category<a class="anchor" href="#category" aria-label="Link to this section">#</a></h3>
+<p>If the score is at least 0.5 the category is the best-matching technology category. Otherwise it is the best-matching meme category. With no match at all, the category is <code>tools</code> when the score is at least 0.6, else <code>unclassified</code>. Filtering with <code>tech=1</code> in the <a href="api.html#get-api-tokens">API</a> means score at least 0.6 and a category outside the meme set (and not <code>unclassified</code>).</p>
+<p>Tokens are classified when they have never been classified, or when they were seen more than six hours after their last classification, up to 2000 per cycle. Classification looks only at text the token published about itself, which can be wrong or deceptive. It is a first filter for human judgement, not a verdict.</p>
+
+<h2 id="wallet-scoring">Wallet scoring<a class="anchor" href="#wallet-scoring" aria-label="Link to this section">#</a></h2>
+<p>Pulse imports public KOL and smart-money wallet labels once a day. It scores wallets hourly from the positions it has recorded for them over a rolling 30 days. Scoring is Solana only, with profit measured in SOL.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Term</th><th>Definition</th></tr></thead>
+<tbody>
+<tr><td>Position</td><td>One wallet and one token: SOL bought, SOL sold, tokens bought, tokens sold, first buy time and market cap.</td></tr>
+<tr><td>Unrealized value</td><td>Tokens still held multiplied by the token's last price, converted to SOL.</td></tr>
+<tr><td>Win</td><td>A position where SOL sold plus unrealized value exceeds SOL bought.</td></tr>
+<tr><td>Win rate</td><td>Wins divided by tokens traded.</td></tr>
+<tr><td>Early hit</td><td>A first buy under $50K market cap on a token whose all-time high reached $500K or more.</td></tr>
+</tbody></table></div>
+<p>The Pulse score combines them:</p>
+<pre><code>score = win_rate * 40
+      + 15 * log10(1 + max(pnl, 0))
+      + min(early_hits, 10) * 5
+      + min(tokens_traded, 20)</code></pre>
+<p>where <code>pnl</code> is realized plus unrealized profit in SOL. Win rate is worth up to 40 points, profit has diminishing returns through the logarithm, early hits are worth 5 each up to 10, and breadth of at least 20 tokens adds up to 20. Scores are stored in <code>wallet_scores</code> with the win rate, early hits, best multiple and USD profit.</p>
+<h3 id="promotion-to-smart-money">Promotion to smart money<a class="anchor" href="#promotion-to-smart-money" aria-label="Link to this section">#</a></h3>
+<p>A wallet that has at least 3 early hits and a win rate of at least 50% is inserted into <code>wallets</code> as kind <code>smart</code> with source <code>pulse:discovered</code>, whether or not it appeared on any public list. The set of smart wallets therefore grows from evidence in your own archive.</p>
+<div class="note"><p><strong>Scores need trades.</strong> A wallet's score is <code>null</code> until Pulse has recorded positions for it. On an archive built with <code>--no-stream</code> the collector never sees individual trades, so labelled wallets show without scores. Run with the firehose on.</p></div>
+
+<h2 id="trade-persistence">Trade persistence<a class="anchor" href="#trade-persistence" aria-label="Link to this section">#</a></h2>
+<p>The firehose sees every pump.fun and PumpSwap trade, but storing all of them would bury the signal. Pulse keeps the trades that carry information, tagged with a <code>reason</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Reason</th><th>Kept when</th></tr></thead>
+<tbody>
+<tr><td><code>wallet:kol</code>, <code>wallet:smart</code></td><td>The trader is a labelled wallet. Every one of its trades is kept.</td></tr>
+<tr><td><code>whale</code></td><td>The trade is 5 SOL or more.</td></tr>
+<tr><td><code>early:graduated</code></td><td>One of the first 40 buyers of a token that later graduated. They are held in memory until the graduation, then written.</td></tr>
+<tr><td><code>early:runner</code></td><td>One of the first 40 buyers of a token that later became <code>running</code>.</td></tr>
+</tbody></table></div>
+<ul>
+<li>Early buyers are tracked for up to 6000 recent mints. Tokens that never graduate or run are forgotten, which is what keeps the archive small.</li>
+<li>Everything else only feeds the rolling heat: 12 buckets of 5 minutes per token, exposed as <code>heat</code> in the token API and as <code>hot</code> in the overview. Heat is not stored.</li>
+<li>Writes are batched every 5 seconds, and <code>wallet_positions</code> are updated in the same flush.</li>
+<li>If the stream goes quiet for 45 seconds, a watchdog reconnects. The public Solana endpoint drops connections often, so a dedicated <code>SOLANA_WS_URLS</code> endpoint is worth setting.</li>
+</ul>
+
+<h2 id="robinhood-chain">Robinhood Chain<a class="anchor" href="#robinhood-chain" aria-label="Link to this section">#</a></h2>
+<p>Robinhood Chain (chain id 4663, an Arbitrum Orbit chain) is read over JSON-RPC. Pulse walks the factory logs of its launchpads (<code>pons</code>, <code>noxa</code>, <code>odyssey</code>) from a saved block cursor, records launch events, and refreshes market data for the tokens it has found. The same lifecycle and classification rules apply. There is no firehose or wallet scoring on this chain yet.</p>
+
+<h2 id="dashboard-and-api">Dashboard and API<a class="anchor" href="#dashboard-and-api" aria-label="Link to this section">#</a></h2>
+<p>The dashboard is a static single-page app served by the same process. Every view is backed by the public <a href="api.html">JSON API</a>, so anything you see you can also fetch, and the <a href="mcp.html">MCP server</a> exposes the same data to agents.</p>
+
+<div class="pager">
+<a class="prev" href="configuration.html" rel="prev"><small>Previous</small>Configuration</a>
+<a class="next" href="data-model.html" rel="next"><small>Next</small>Data model</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#the-two-inputs">The two inputs</a></li><li><a href="#a-collection-cycle-step-by-step">A collection cycle, step by step</a></li><li><a href="#token-lifecycle">Token lifecycle</a></li><li><a href="#tech-versus-meme-classification">Tech versus meme classification</a></li><li><a href="#wallet-scoring">Wallet scoring</a></li><li><a href="#trade-persistence">Trade persistence</a></li><li><a href="#robinhood-chain">Robinhood Chain</a></li><li><a href="#dashboard-and-api">Dashboard and API</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

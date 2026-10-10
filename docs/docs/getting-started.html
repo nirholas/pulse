@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started | Pulse docs</title>
+<meta name="description" content="Install Pulse, run the collector, firehose, API and dashboard on http://localhost:8787, and confirm data is flowing. Node 24 or newer, no API keys required.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/getting-started.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Getting started | Pulse docs">
+<meta property="og:description" content="Install Pulse, run the collector, firehose, API and dashboard on http://localhost:8787, and confirm data is flowing. Node 24 or newer, no API keys required.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/getting-started.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Getting started | Pulse docs">
+<meta name="twitter:description" content="Install Pulse, run the collector, firehose, API and dashboard on http://localhost:8787, and confirm data is flowing. Node 24 or newer, no API keys required.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Getting started","description":"Install Pulse, run the collector, firehose, API and dashboard on http://localhost:8787, and confirm data is flowing. Node 24 or newer, no API keys required.","url":"https://nirholas.github.io/pulse/docs/getting-started.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/getting-started.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"Getting started","item":"https://nirholas.github.io/pulse/docs/getting-started.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html" aria-current="page">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">Getting started</li></ol></nav>
+<h1>Getting started</h1>
+<p class="lead">Pulse runs as one process: collector, Solana firehose, JSON API and dashboard on a single port. Everything has a default, so a fresh clone works with no accounts and no keys.</p>
+<h2 id="requirements">Requirements<a class="anchor" href="#requirements" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Node 24 or newer.</strong> Pulse runs TypeScript directly through Node type stripping and reads <code>.env</code> natively.</li>
+<li>No database to install. Without <code>DATABASE_URL</code> the archive lives in an embedded PGlite directory at <code>data/pglite</code>.</li>
+<li>Optional: Docker for a TimescaleDB archive, a Telegram bot for the newsletter, and a dedicated Solana RPC endpoint to keep the firehose steady.</li>
+</ul>
+
+<h2 id="run-from-source">Run from source<a class="anchor" href="#run-from-source" aria-label="Link to this section">#</a></h2>
+<p>This is the path in the repository README.</p>
+<pre><code class="language-bash">git clone https://github.com/nirholas/pulse.git
+cd pulse
+npm install
+cp .env.example .env       # optional, everything has a default
+npm run build              # builds the dashboard into dist/web
+npm start                  # collector + firehose + API + dashboard on http://localhost:8787</code></pre>
+<p>Open <a href="http://localhost:8787">http://localhost:8787</a>. The dashboard fills in after the first collection cycle finishes. Until then the overview shows an empty state and the status pill reads "last cycle pending".</p>
+
+<h2 id="run-from-npm">Run from npm<a class="anchor" href="#run-from-npm" aria-label="Link to this section">#</a></h2>
+<p>The <code>pulse-trenches</code> package ships two commands: <code>pulse</code> (the app) and <code>pulse-mcp</code> (the MCP server). Because the package has two bins, tell <code>npx</code> which package to take them from with <code>-p</code>.</p>
+<pre><code class="language-bash">npx -y -p pulse-trenches pulse            # start everything (same as: pulse start)
+npx -y -p pulse-trenches pulse --help     # list subcommands</code></pre>
+<p>Subcommands of <code>pulse</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>pulse start</code></td><td>Collector, firehose, API and dashboard. The default when no subcommand is given.</td></tr>
+<tr><td><code>pulse collect</code></td><td>Run one collection cycle and exit. Add <code>--jobs</code> to also import wallet labels and score wallets.</td></tr>
+<tr><td><code>pulse report</code></td><td>Build the daily newsletter. Flags: <code>--day YYYY-MM-DD</code>, <code>--no-send</code>, <code>--print</code>.</td></tr>
+<tr><td><code>pulse migrate</code></td><td>Apply database migrations and exit.</td></tr>
+<tr><td><code>pulse mcp</code></td><td>Start the MCP server over stdio. Set <code>PULSE_URL</code> to the API.</td></tr>
+</tbody></table></div>
+
+<h2 id="confirm-it-is-working">Confirm it is working<a class="anchor" href="#confirm-it-is-working" aria-label="Link to this section">#</a></h2>
+<p>The health route reports which database engine is in use, when the last collection cycle finished, and the live firehose state.</p>
+<pre><code class="language-bash">curl -s http://localhost:8787/api/health</code></pre>
+<pre><code class="language-json">{"ok":true,"db":"pglite","lastCycle":"2026-10-09T16:02:44.530Z","stream":null,"prices":{"solUsd":110.30668154929297,"ethUsd":2507.195}}</code></pre>
+<p>The response above came from a real run started with <code>--no-stream</code>, which is why <code>stream</code> is <code>null</code>. With the firehose on, it holds connection state and rolling counters. Then ask for the top tokens by volume:</p>
+<pre><code class="language-bash">curl -s "http://localhost:8787/api/tokens?limit=3&amp;sort=volume"</code></pre>
+
+<h2 id="day-to-day-commands">Day-to-day commands<a class="anchor" href="#day-to-day-commands" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Command</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>npm run dev</code></td><td>Collector and Vite dev server with hot reload (http://localhost:5173, API on 8787).</td></tr>
+<tr><td><code>npm run collect</code></td><td>One collection cycle, then exit (<code>-- --jobs</code> also imports wallets and scores them).</td></tr>
+<tr><td><code>npm run report -- --no-send --print</code></td><td>Build today's newsletter without sending it.</td></tr>
+<tr><td><code>npm run db:up</code></td><td>Start TimescaleDB with Docker Compose on host port 5544.</td></tr>
+<tr><td><code>npm run db:migrate</code></td><td>Apply migrations and exit.</td></tr>
+<tr><td><code>npm test</code>, <code>npm run typecheck</code></td><td>Tests and types.</td></tr>
+</tbody></table></div>
+
+<h2 id="switch-to-postgres-or-timescaledb">Switch to Postgres or TimescaleDB<a class="anchor" href="#switch-to-postgres-or-timescaledb" aria-label="Link to this section">#</a></h2>
+<pre><code class="language-bash">npm run db:up              # Postgres on host port 5544
+echo 'DATABASE_URL=postgres://pulse:pulse@localhost:5544/pulse' &gt;&gt; .env
+npm start</code></pre>
+<p>Any Postgres works. On a TimescaleDB server Pulse converts the time-series tables to compressed hypertables automatically. See <a href="data-model.html">Data model</a> and <a href="deployment.html">Deployment</a>.</p>
+
+<h2 id="next-steps">Next steps<a class="anchor" href="#next-steps" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Set a Telegram bot token and chat to receive the <a href="telegram-newsletter.html">daily newsletter</a>.</li>
+<li>Point your agent at the <a href="mcp.html">MCP server</a>.</li>
+<li>Tune the <a href="configuration.html">environment variables</a>, especially a dedicated <code>SOLANA_WS_URLS</code> endpoint.</li>
+<li>Read <a href="how-it-works.html">how statuses, classification and wallet scores are decided</a>.</li>
+</ul>
+
+<div class="pager">
+<span></span>
+<a class="next" href="configuration.html" rel="next"><small>Next</small>Configuration</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#requirements">Requirements</a></li><li><a href="#run-from-source">Run from source</a></li><li><a href="#run-from-npm">Run from npm</a></li><li><a href="#confirm-it-is-working">Confirm it is working</a></li><li><a href="#day-to-day-commands">Day-to-day commands</a></li><li><a href="#switch-to-postgres-or-timescaledb">Switch to Postgres or TimescaleDB</a></li><li><a href="#next-steps">Next steps</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

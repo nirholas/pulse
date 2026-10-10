@@ -4,13 +4,13 @@
   "title": "Pulse",
   "description": "Read-only market intelligence for the Solana and Robinhood Chain trenches: runners, launches, wallets, daily reports.",
   "repository": { "url": "https://github.com/nirholas/pulse", "source": "github" },
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://nirholas.github.io/pulse/",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "pulse-trenches",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "runtimeHint": "npx",
       "transport": { "type": "stdio" },
       "environmentVariables": [

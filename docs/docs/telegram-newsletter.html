@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telegram newsletter | Pulse docs</title>
+<meta name="description" content="Set up the Pulse daily newsletter: create a Telegram bot, choose a channel, pick the send hour and time zone, preview an issue without sending, and read every section.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/telegram-newsletter.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Telegram newsletter | Pulse docs">
+<meta property="og:description" content="Set up the Pulse daily newsletter: create a Telegram bot, choose a channel, pick the send hour and time zone, preview an issue without sending, and read every section.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/telegram-newsletter.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Telegram newsletter | Pulse docs">
+<meta name="twitter:description" content="Set up the Pulse daily newsletter: create a Telegram bot, choose a channel, pick the send hour and time zone, preview an issue without sending, and read every section.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Telegram newsletter","description":"Set up the Pulse daily newsletter: create a Telegram bot, choose a channel, pick the send hour and time zone, preview an issue without sending, and read every section.","url":"https://nirholas.github.io/pulse/docs/telegram-newsletter.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/telegram-newsletter.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"Telegram newsletter","item":"https://nirholas.github.io/pulse/docs/telegram-newsletter.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html" aria-current="page">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">Telegram newsletter</li></ol></nav>
+<h1>Telegram newsletter</h1>
+<p class="lead">Once a day Pulse turns the archive into an issue, stores it, and sends it to a Telegram chat or channel. The same issue is readable in the dashboard and through the API.</p>
+<h2 id="set-up-in-four-steps">Set up in four steps<a class="anchor" href="#set-up-in-four-steps" aria-label="Link to this section">#</a></h2>
+<ol>
+<li><strong>Create a bot.</strong> Message @BotFather on Telegram, send <code>/newbot</code>, and copy the bot token.</li>
+<li><strong>Choose the destination.</strong> A private chat with the bot, a group, or a channel. For a channel, add the bot as an administrator with permission to post. Use the channel handle (for example <code>@my_channel</code>) or the numeric chat id.</li>
+<li><strong>Set the variables.</strong> Add them to <code>.env</code>:
+<pre><code class="language-bash">TELEGRAM_BOT_TOKEN=123456:ABC...
+TELEGRAM_CHAT_ID=@my_channel
+REPORT_TIMEZONE=America/New_York   # defines the local day, default UTC
+REPORT_HOUR=13                     # local hour to send at or after, default 13
+PUBLIC_URL=https://pulse.example.com  # optional, adds a dashboard link</code></pre></li>
+<li><strong>Keep Pulse running.</strong> The newsletter is a scheduled job inside the main process, so it needs <code>pulse start</code> to stay up. See <a href="deployment.html">Deployment</a>.</li>
+</ol>
+
+<h2 id="when-an-issue-is-built">When an issue is built<a class="anchor" href="#when-an-issue-is-built" aria-label="Link to this section">#</a></h2>
+<p>At the end of every collection cycle Pulse checks whether the current local day (in <code>REPORT_TIMEZONE</code>) already has an issue. If not, and the local hour is <code>REPORT_HOUR</code> or later, it builds one. That makes the send time resilient: if the process was down at 13:00 it sends at the first cycle after it comes back, still once per day.</p>
+<p>Each issue covers the last 24 hours (the <code>windowHours</code> field) and is stored in <code>daily_reports</code> before anything is sent, so a failed Telegram call never loses the issue.</p>
+
+<h2 id="preview-without-sending">Preview without sending<a class="anchor" href="#preview-without-sending" aria-label="Link to this section">#</a></h2>
+<pre><code class="language-bash">npm run report -- --no-send --print
+npx -y -p pulse-trenches pulse report --day 2026-10-09 --no-send --print</code></pre>
+<p>Flags: <code>--day YYYY-MM-DD</code> picks the day (default today, UTC), <code>--no-send</code> stores the issue without sending it, <code>--print</code> prints the Markdown rendering. Without <code>--no-send</code>, the same command builds and sends on demand. You can also preview the structured data of any day with <a href="api.html#get-api-reports-day-live"><code>/api/reports/:day/live</code></a>.</p>
+
+<h2 id="what-is-in-an-issue">What is in an issue<a class="anchor" href="#what-is-in-an-issue" aria-label="Link to this section">#</a></h2>
+<p>Sections appear only when they have something to say. Nothing is padded.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Section</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td>Market pulse</td><td>Chain-wide market cap, volume and tracked tokens.</td></tr>
+<tr><td>Launchpads</td><td>Launches and graduations in the window, by launchpad.</td></tr>
+<tr><td>Daily runners</td><td>Tokens with status <code>running</code>.</td></tr>
+<tr><td>New and already moving</td><td>Fresh launches that already show volume.</td></tr>
+<tr><td>Tech watch</td><td>Tokens classified as technology rather than meme, ranked by tech score.</td></tr>
+<tr><td>Staying power</td><td>Tokens that kept showing up on discovery lists across the window.</td></tr>
+<tr><td>Holder growth</td><td>Largest holder-count gains.</td></tr>
+<tr><td>Volume leaders</td><td>Top 24h volume.</td></tr>
+<tr><td>What faded</td><td>Tokens that turned <code>dying</code> or <code>dead</code>, with their peak.</td></tr>
+<tr><td>KOL activity, Where KOLs are trading</td><td>Labelled KOL wallets and the tokens they hold.</td></tr>
+<tr><td>Smart money, Where smart money is trading</td><td>Scored and discovered smart wallets and the tokens they hold.</td></tr>
+<tr><td>Sectors</td><td>Volume and move by category.</td></tr>
+<tr><td>Robinhood Chain</td><td>Launches and activity on Robinhood Chain.</td></tr>
+<tr><td>Paid attention</td><td>Tokens that bought promotion on DexScreener (boosts and profiles).</td></tr>
+<tr><td>Archive</td><td>Tokens and snapshots on record, plus tokens seen, snapshots, tracked trades and watched wallets in the last 24 hours.</td></tr>
+</tbody></table></div>
+
+<h2 id="optional-written-overview">Optional written overview<a class="anchor" href="#optional-written-overview" aria-label="Link to this section">#</a></h2>
+<p>Set <code>ANTHROPIC_API_KEY</code> and each issue opens with a three to five sentence overview written by Claude (model set by <code>ANTHROPIC_MODEL</code>). The model receives only that day's numbers as JSON and is told never to invent a token, number or cause. If the call fails the issue goes out without it. Without a key, issues are data only, and the stored <code>narrative</code> is <code>null</code>.</p>
+
+<h2 id="delivery-details">Delivery details<a class="anchor" href="#delivery-details" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Messages use Telegram HTML formatting with link previews disabled.</li>
+<li>Telegram caps a message at 4096 characters. Pulse splits at 3800 on section and line boundaries, repeating the section title as "(cont.)".</li>
+<li>Messages are sent in order with a 1.1 second pause. On a <code>429</code> Pulse waits as long as Telegram asks and retries, up to four attempts per message.</li>
+<li>The send receipt (time and message ids) is stored on the issue's <code>telegram</code> column, and <code>sent</code> in <a href="api.html#get-api-reports"><code>/api/reports</code></a> becomes true.</li>
+<li>If <code>PUBLIC_URL</code> is set, the first message links to <code>PUBLIC_URL/#/reports/&lt;day&gt;</code>.</li>
+</ul>
+
+<h2 id="reading-issues-elsewhere">Reading issues elsewhere<a class="anchor" href="#reading-issues-elsewhere" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Dashboard:</strong> the Reports page lists every stored issue and renders each one.</li>
+<li><strong>API:</strong> <code>/api/reports</code> and <code>/api/reports/:day</code>, which include <code>markdown</code> and <code>html</code>.</li>
+<li><strong>MCP:</strong> the <code>pulse_report</code> tool, see <a href="mcp.html">MCP server</a>.</li>
+</ul>
+
+<div class="note"><p><strong>Failures.</strong> The issue is stored before sending. If Telegram rejects a send (wrong chat id, bot not an admin), the error is logged and the day is not marked done, so Pulse retries on the next collection cycle until it goes through. Fix the variable and restart, or run <code>pulse report</code> yourself.</p></div>
+
+<div class="pager">
+<a class="prev" href="mcp.html" rel="prev"><small>Previous</small>MCP server</a>
+<a class="next" href="deployment.html" rel="next"><small>Next</small>Deployment</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#set-up-in-four-steps">Set up in four steps</a></li><li><a href="#when-an-issue-is-built">When an issue is built</a></li><li><a href="#preview-without-sending">Preview without sending</a></li><li><a href="#what-is-in-an-issue">What is in an issue</a></li><li><a href="#optional-written-overview">Optional written overview</a></li><li><a href="#delivery-details">Delivery details</a></li><li><a href="#reading-issues-elsewhere">Reading issues elsewhere</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

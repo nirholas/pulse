@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployment | Pulse docs</title>
+<meta name="description" content="Run Pulse long-term: a TimescaleDB archive with Docker Compose, a systemd or container service, notes for Cloud Run and other hosts, backups, and how to expose it safely.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/deployment.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deployment | Pulse docs">
+<meta property="og:description" content="Run Pulse long-term: a TimescaleDB archive with Docker Compose, a systemd or container service, notes for Cloud Run and other hosts, backups, and how to expose it safely.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/deployment.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Deployment | Pulse docs">
+<meta name="twitter:description" content="Run Pulse long-term: a TimescaleDB archive with Docker Compose, a systemd or container service, notes for Cloud Run and other hosts, backups, and how to expose it safely.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Deployment","description":"Run Pulse long-term: a TimescaleDB archive with Docker Compose, a systemd or container service, notes for Cloud Run and other hosts, backups, and how to expose it safely.","url":"https://nirholas.github.io/pulse/docs/deployment.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/deployment.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"Deployment","item":"https://nirholas.github.io/pulse/docs/deployment.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html" aria-current="page">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">Deployment</li></ol></nav>
+<h1>Deployment</h1>
+<p class="lead">Pulse is one long-running Node process and one database. This page covers the bundled TimescaleDB setup and the things any host needs to get right: a persistent archive, an always-running process, and access control.</p>
+<h2 id="what-a-deployment-needs">What a deployment needs<a class="anchor" href="#what-a-deployment-needs" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Node 24 or newer</strong>, or a container image that has it.</li>
+<li><strong>A process that stays up.</strong> The collector, the firehose and the newsletter schedule live inside <code>pulse start</code>. If the process sleeps, collection stops.</li>
+<li><strong>A persistent archive.</strong> The default PGlite directory is a folder on local disk. Put it on a persistent volume, or set <code>DATABASE_URL</code> to a Postgres server.</li>
+<li><strong>Outbound network</strong> to the data providers, to your RPC endpoints and, for the newsletter, to Telegram.</li>
+<li><strong>Inbound access control</strong> if the API or dashboard is reachable by anyone but you.</li>
+</ul>
+
+<h2 id="timescaledb-with-docker-compose">TimescaleDB with Docker Compose<a class="anchor" href="#timescaledb-with-docker-compose" aria-label="Link to this section">#</a></h2>
+<p>The repository ships a <code>docker-compose.yml</code> with one service, the database. Pulse itself runs on the host.</p>
+<pre><code class="language-yaml">services:
+  db:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_USER: pulse
+      POSTGRES_PASSWORD: pulse
+      POSTGRES_DB: pulse
+    ports:
+      - "5544:5432"
+    volumes:
+      - pulse-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pulse"]
+      interval: 5s
+      retries: 10
+volumes:
+  pulse-db:</code></pre>
+<pre><code class="language-bash">npm run db:up
+echo 'DATABASE_URL=postgres://pulse:pulse@localhost:5544/pulse' &gt;&gt; .env
+npm start</code></pre>
+<p>On first start Pulse applies the migration and converts the time-series tables to compressed hypertables, see <a href="data-model.html#timescaledb-hypertables">Data model</a>.</p>
+<div class="note warn"><p><strong>Change the password for anything shared.</strong> The compose file uses <code>pulse</code> as user, password and database, and publishes the port. That is fine on your own machine. On a server, set a real password, do not publish port 5432 to the internet, and update <code>DATABASE_URL</code> to match.</p></div>
+
+<h2 id="run-as-a-service">Run as a service<a class="anchor" href="#run-as-a-service" aria-label="Link to this section">#</a></h2>
+<p>A systemd unit for a source checkout or an install from npm. Adjust the paths and user.</p>
+<pre><code class="language-ini">[Unit]
+Description=Pulse market intelligence
+After=network-online.target
+
+[Service]
+User=pulse
+WorkingDirectory=/opt/pulse
+EnvironmentFile=/opt/pulse/.env
+ExecStart=/usr/bin/node src/main.ts
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<pre><code class="language-bash">sudo systemctl enable --now pulse
+journalctl -u pulse -f</code></pre>
+<p><code>Restart=always</code> matters: the firehose reconnects by itself, but a crashed process needs the supervisor.</p>
+
+<h2 id="container">Container<a class="anchor" href="#container" aria-label="Link to this section">#</a></h2>
+<p>The repository does not include a Dockerfile. This is an example that installs the published package. Build it yourself and test it before relying on it.</p>
+<pre><code class="language-dockerfile">FROM node:24-slim
+RUN npm install -g pulse-trenches
+ENV PORT=8787
+EXPOSE 8787
+CMD ["pulse", "start"]</code></pre>
+<pre><code class="language-bash">docker build -t pulse .
+docker run -d --name pulse -p 8787:8787 --env-file .env \
+  -v pulse-data:/data -e PGLITE_DIR=/data/pglite pulse</code></pre>
+<p>With <code>DATABASE_URL</code> set to an external Postgres, the volume and <code>PGLITE_DIR</code> are not needed.</p>
+
+<h2 id="cloud-run-and-other-serverless-hosts">Cloud Run and other serverless hosts<a class="anchor" href="#cloud-run-and-other-serverless-hosts" aria-label="Link to this section">#</a></h2>
+<p>Pulse is a stateful worker, so scale-to-zero platforms need care. On Google Cloud Run:</p>
+<ul>
+<li>Use an external Postgres (Cloud SQL, or any reachable server) via <code>DATABASE_URL</code>. Cloud Run's local disk is ephemeral, so the PGlite directory would be lost.</li>
+<li>Set <strong>minimum instances to 1</strong> and <strong>CPU always allocated</strong>. Otherwise the instance is throttled between requests and the collection loop, WebSocket stream and newsletter schedule stall.</li>
+<li>Keep it to <strong>one instance</strong> (maximum instances 1). Two instances would both collect and both send the newsletter.</li>
+<li>Cloud Run sets <code>PORT</code> itself, and Pulse honours it.</li>
+</ul>
+<pre><code class="language-bash">gcloud run deploy pulse --image IMAGE \
+  --min-instances 1 --max-instances 1 --no-cpu-throttling \
+  --set-env-vars DATABASE_URL=...,PUBLIC_URL=https://...</code></pre>
+<p>A small always-on VM or any container host with a persistent disk is simpler and usually cheaper for a process that never sleeps.</p>
+
+<h2 id="exposing-the-dashboard-and-api">Exposing the dashboard and API<a class="anchor" href="#exposing-the-dashboard-and-api" aria-label="Link to this section">#</a></h2>
+<p>Pulse has no authentication and serves CORS for all origins. It binds to every network interface on <code>PORT</code>. Choose one:</p>
+<ul>
+<li><strong>Private:</strong> keep the host firewalled and reach it over a VPN or SSH tunnel (<code>ssh -L 8787:localhost:8787 host</code>).</li>
+<li><strong>Public with a gate:</strong> put it behind a reverse proxy (Caddy, nginx, a cloud load balancer) that adds TLS and HTTP basic auth or an identity-aware proxy. Set <code>PUBLIC_URL</code> to the proxy's address so newsletter links point to it.</li>
+</ul>
+<p>All routes are read-only, but the archive includes labelled wallet data and tracked-trade history you may not want public.</p>
+
+<h2 id="backups-and-upgrades">Backups and upgrades<a class="anchor" href="#backups-and-upgrades" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Postgres:</strong> back up with <code>pg_dump</code>, or snapshot the volume. Restoring into TimescaleDB follows Timescale's own pre-restore and post-restore procedure.</li>
+<li><strong>PGlite:</strong> stop Pulse and copy the <code>PGLITE_DIR</code> folder. Do not copy it while Pulse is running.</li>
+<li><strong>Upgrades:</strong> update the code or package and restart. Migrations run on start and each one is recorded in <code>schema_migrations</code> so it applies once. To apply them without starting the app, run <code>pulse migrate</code>.</li>
+<li><strong>Analysis copies:</strong> point your tools at a read-only replica or use <a href="api.html#get-api-export-table"><code>/api/export</code></a>.</li>
+</ul>
+
+<h2 id="running-only-part-of-it">Running only part of it<a class="anchor" href="#running-only-part-of-it" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Goal</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Collector and API without the firehose</td><td><code>STREAMS=off</code> or <code>--no-stream</code>. Wallet scores stay empty because no trades are recorded.</td></tr>
+<tr><td>Firehose and collector without the web server</td><td><code>--no-server</code></td></tr>
+<tr><td>Cron-style collection</td><td><code>pulse collect --jobs</code> on a schedule. No firehose, but snapshots, statuses and classification all run.</td></tr>
+<tr><td>Check health from a monitor</td><td><code>GET /api/health</code> returns <code>lastCycle</code>. Alert when it is older than a few cycles.</td></tr>
+</tbody></table></div>
+
+<div class="pager">
+<a class="prev" href="telegram-newsletter.html" rel="prev"><small>Previous</small>Telegram newsletter</a>
+<a class="next" href="faq.html" rel="next"><small>Next</small>FAQ</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#what-a-deployment-needs">What a deployment needs</a></li><li><a href="#timescaledb-with-docker-compose">TimescaleDB with Docker Compose</a></li><li><a href="#run-as-a-service">Run as a service</a></li><li><a href="#container">Container</a></li><li><a href="#cloud-run-and-other-serverless-hosts">Cloud Run and other serverless hosts</a></li><li><a href="#exposing-the-dashboard-and-api">Exposing the dashboard and API</a></li><li><a href="#backups-and-upgrades">Backups and upgrades</a></li><li><a href="#running-only-part-of-it">Running only part of it</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

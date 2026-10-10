@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API reference | Pulse docs</title>
+<meta name="description" content="Every Pulse JSON route: health, overview, tokens, token detail, candles, launches, wallets, reports and table export, with parameters and example responses from a real running instance.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/api.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="API reference | Pulse docs">
+<meta property="og:description" content="Every Pulse JSON route: health, overview, tokens, token detail, candles, launches, wallets, reports and table export, with parameters and example responses from a real running instance.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/api.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="API reference | Pulse docs">
+<meta name="twitter:description" content="Every Pulse JSON route: health, overview, tokens, token detail, candles, launches, wallets, reports and table export, with parameters and example responses from a real running instance.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"API reference","description":"Every Pulse JSON route: health, overview, tokens, token detail, candles, launches, wallets, reports and table export, with parameters and example responses from a real running instance.","url":"https://nirholas.github.io/pulse/docs/api.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/api.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"API reference","item":"https://nirholas.github.io/pulse/docs/api.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html">Docs</a>
+<a href="../docs/api.html" aria-current="page">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html" aria-current="page">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">API reference</li></ol></nav>
+<h1>API reference</h1>
+<p class="lead">Pulse serves a read-only JSON API from the same port as the dashboard. Every example response on this page was captured from a real running Pulse instance and trimmed for length: long arrays keep one item and large objects show their first fields.</p>
+<h2 id="conventions">Conventions<a class="anchor" href="#conventions" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Base URL:</strong> <code>http://localhost:8787</code> by default (see <code>PORT</code>). All routes are under <code>/api</code>.</li>
+<li><strong>Method:</strong> every route is <code>GET</code>. The API never writes to the archive.</li>
+<li><strong>Auth:</strong> none. Pulse is built to run on your own machine or network. Put it behind your own proxy if you expose it, see <a href="deployment.html">Deployment</a>.</li>
+<li><strong>CORS:</strong> enabled for all origins on <code>/api/*</code>.</li>
+<li><strong>Format:</strong> JSON. Numbers are plain JSON numbers, timestamps are ISO 8601 UTC strings.</li>
+<li><strong>Errors:</strong> a JSON body with an <code>error</code> key. <code>404</code> for a missing token or report, <code>400</code> for an invalid export table, <code>500</code> with <code>{"error":"internal error","detail":"..."}</code> for an unexpected failure.</li>
+<li><strong>Limits:</strong> integer parameters are clamped to their range rather than rejected.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead><tr><th>Route</th><th>Returns</th></tr></thead>
+<tbody>
+<tr><td><a href="#get-api-health"><code>/api/health</code></a></td><td>Liveness, database engine, last cycle, firehose state, native prices</td></tr>
+<tr><td><a href="#get-api-overview"><code>/api/overview</code></a></td><td>Market totals, status counts, sectors, launches, hot tokens, status rules</td></tr>
+<tr><td><a href="#get-api-tokens"><code>/api/tokens</code></a></td><td>Filtered, sorted, paginated token list</td></tr>
+<tr><td><a href="#get-api-tokens-chain-address"><code>/api/tokens/:chain/:address</code></a></td><td>One token with pools, snapshots, lists, events, trades, positions</td></tr>
+<tr><td><a href="#get-api-tokens-chain-address-candles"><code>/api/tokens/:chain/:address/candles</code></a></td><td>OHLCV candles</td></tr>
+<tr><td><a href="#get-api-pump-mint"><code>/api/pump/:mint</code></a></td><td>pump.fun's own record of a coin</td></tr>
+<tr><td><a href="#get-api-launches"><code>/api/launches</code></a></td><td>Recent launch and graduation events</td></tr>
+<tr><td><a href="#get-api-wallets"><code>/api/wallets</code></a></td><td>Ranked labelled wallets</td></tr>
+<tr><td><a href="#get-api-wallets-address"><code>/api/wallets/:address</code></a></td><td>One wallet with positions and trades</td></tr>
+<tr><td><a href="#get-api-reports"><code>/api/reports</code></a></td><td>List of stored newsletter issues</td></tr>
+<tr><td><a href="#get-api-reports-day"><code>/api/reports/:day</code></a></td><td>One stored issue</td></tr>
+<tr><td><a href="#get-api-reports-day-live"><code>/api/reports/:day/live</code></a></td><td>The issue's data recomputed now</td></tr>
+<tr><td><a href="#get-api-export-table"><code>/api/export/:table</code></a></td><td>Raw rows from an archive table</td></tr>
+</tbody></table></div>
+
+<h2 id="get-api-health"><span class="method">GET</span><span class="route">/api/health</span><a class="anchor" href="#get-api-health" aria-label="Link to this section">#</a></h2>
+<p>Use it as a liveness and freshness check. <code>lastCycle</code> is the time the last collection cycle finished, or <code>null</code> before the first one. <code>stream</code> is <code>null</code> when the firehose is off.</p>
+<pre><code class="language-json">{
+  "ok": true,
+  "db": "pglite",
+  "lastCycle": "2026-10-10T20:50:28.055Z",
+  "stream": null,
+  "prices": {
+    "solUsd": 110.30003830152059,
+    "ethUsd": 2507.515
+  }
+}</code></pre>
+
+<h2 id="get-api-overview"><span class="method">GET</span><span class="route">/api/overview</span><a class="anchor" href="#get-api-overview" aria-label="Link to this section">#</a></h2>
+<p>Everything the dashboard overview shows, in one call. The market totals Pulse stores exclude dead tokens, tokens at or above $1B market cap, and tokens tagged as stablecoins, liquid staking tokens, wrapped assets or tokenized equities, and count only tokens snapshotted in the last 2 hours, so the figures describe the trenches rather than majors.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Field</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td><code>markets</code></td><td>Latest <code>market_snapshots</code> row per chain.</td></tr>
+<tr><td><code>series</code></td><td>Seven days of market snapshots for charting.</td></tr>
+<tr><td><code>status</code></td><td>Token count and summed market cap per chain and lifecycle status.</td></tr>
+<tr><td><code>categories</code></td><td>Sector rollup for tokens seen in the last 2 hours with market cap from $25K to under $1B: token count, 24h volume, market cap, average 24h change.</td></tr>
+<tr><td><code>launches</code></td><td>Hourly launch and graduation counts for the last 48 hours, per chain.</td></tr>
+<tr><td><code>hot</code></td><td>Up to 20 hottest tokens in the live Solana trade stream. Empty when the firehose is off.</td></tr>
+<tr><td><code>stream</code>, <code>prices</code></td><td>Firehose counters and SOL and ETH prices in USD.</td></tr>
+<tr><td><code>rules</code></td><td>The plain-language lifecycle rules, see <a href="how-it-works.html#token-lifecycle">How it works</a>.</td></tr>
+</tbody></table></div>
+<pre><code class="language-json">{
+  "markets": [
+    {
+      "ts": "2026-10-09T16:02:44.530Z",
+      "chain": "robinhood",
+      "native_usd": 2484.725,
+      "tracked_tokens": 35,
+      "total_mcap": 240440572,
+      "total_volume_24h": 18053134.840000004,
+      "launches_1h": 122,
+      "graduations_1h": 0,
+      "stream_trades_1h": null,
+      "stream_volume_1h": null,
+      "data": {}
+    },
+    {
+      "ts": "2026-10-09T16:02:44.530Z",
+      "chain": "solana",
+      "native_usd": 109.50513045779886,
+      "tracked_tokens": 814,
+      "total_mcap": 15127778740.769213,
+      "total_volume_24h": 826734738.1226892,
+      "launches_1h": 4,
+      "graduations_1h": 0,
+      "stream_trades_1h": 937,
+      "stream_volume_1h": 180689.35656318715,
+      "data": {
+        "pools1h": 0,
+        "connected": true,
+        "trackedTokens": 120,
+        "tradersSeen1h": 728
+      }
+    }
+  ],
+  "series": [
+    {
+      "ts": "2026-10-09T15:54:36.513Z",
+      "chain": "solana",
+      "total_mcap": 98437580086.30959,
+      "total_volume_24h": 6662829921.434305,
+      "launches_1h": 0,
+      "graduations_1h": 0,
+      "stream_trades_1h": null,
+      "stream_volume_1h": null,
+      "native_usd": 109.54923272285733
+    }
+  ],
+  "status": [
+    {
+      "chain": "solana",
+      "status": "new",
+      "tokens": 478,
+      "mcap": 606009650.9817777
+    },
+    {
+      "chain": "solana",
+      "status": "graduated",
+      "tokens": 160,
+      "mcap": 1616868612.6361256
+    },
+    {
+      "chain": "solana",
+      "status": "running",
+      "tokens": 258,
+      "mcap": 98931876555.87157
+    }
+  ],
+  "categories": [],
+  "launches": [
+    {
+      "hour": "2026-10-09T04:00:00.000Z",
+      "chain": "robinhood",
+      "launches": 25,
+      "graduations": 0
+    },
+    {
+      "hour": "2026-10-09T05:00:00.000Z",
+      "chain": "robinhood",
+      "launches": 60,
+      "graduations": 0
+    }
+  ],
+  "hot": [],
+  "stream": null,
+  "prices": {
+    "solUsd": 110.30668154929297,
+    "ethUsd": 2507.195
+  },
+  "rules": {
+    "running": "mcap at least 60% of ATH, ATH set within 24h, mcap &gt;= $100k and 24h volume &gt;= $50k",
+    "dying": "mcap down 70% or more from an ATH of at least $50k, or 24h volume under 10% of its peak after peaking above $100k",
+    "dead": "mcap down 90% or more from an ATH of at least $20k, or liquidity under $1k, or no fresh data for 3 days with negligible volume",
+    "graduated": "the launchpad reported the bonding curve completed (pump.fun complete event, Odyssey PoolMigrated)",
+    "new": "seen but none of the above yet"
+  }
+}</code></pre>
+
+<h2 id="get-api-tokens"><span class="method">GET</span><span class="route">/api/tokens</span><a class="anchor" href="#get-api-tokens" aria-label="Link to this section">#</a></h2>
+<p>List tokens. Returns <code>total</code> (the count matching the filters, before pagination) and <code>rows</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td>string</td><td><code>solana</code> or <code>robinhood</code>.</td></tr>
+<tr><td><code>status</code></td><td>string</td><td><code>new</code>, <code>running</code>, <code>graduated</code>, <code>dying</code> or <code>dead</code>.</td></tr>
+<tr><td><code>category</code></td><td>string</td><td>Sector, for example <code>ai</code>, <code>agents</code>, <code>defi</code>, <code>meme</code>.</td></tr>
+<tr><td><code>launchpad</code></td><td>string</td><td>For example <code>pump</code>, <code>pons</code>.</td></tr>
+<tr><td><code>tech</code></td><td><code>1</code></td><td>Only tokens with tech score of 0.6 or more whose category is not <code>meme</code>, <code>animal</code>, <code>culture</code>, <code>politics</code>, <code>celebrity</code> or <code>unclassified</code>.</td></tr>
+<tr><td><code>minMcap</code></td><td>number</td><td>Minimum last market cap in USD.</td></tr>
+<tr><td><code>minVolume</code></td><td>number</td><td>Minimum last 24h volume in USD.</td></tr>
+<tr><td><code>q</code></td><td>string</td><td>Case-insensitive substring match on symbol, name or address.</td></tr>
+<tr><td><code>sort</code></td><td>string</td><td><code>volume</code> (default), <code>mcap</code>, <code>change</code>, <code>new</code>, <code>tech</code>, <code>holders</code>, <code>ath</code>. Nulls sort last. An unknown value falls back to <code>volume</code>.</td></tr>
+<tr><td><code>limit</code></td><td>integer</td><td>1 to 200, default 50.</td></tr>
+<tr><td><code>offset</code></td><td>integer</td><td>0 to 100000, default 0.</td></tr>
+</tbody></table></div>
+<pre><code class="language-bash">curl -s "http://localhost:8787/api/tokens?limit=2&amp;sort=volume"</code></pre>
+<pre><code class="language-json">{
+  "total": 1867,
+  "rows": [
+    {
+      "chain": "solana",
+      "address": "So11111111111111111111111111111111111111112",
+      "symbol": "SOL",
+      "name": "Wrapped SOL",
+      "category": "unclassified",
+      "tech_score": 0.55,
+      "status": "running",
+      "launchpad": null,
+      "last_price": 109.5103588079291,
+      "last_mcap": 64476277428.57601,
+      "last_liquidity": 957580467.1244314,
+      "last_volume_24h": 3558182124.809469,
+      "last_holders": 3820662,
+      "last_change_24h": 0.87256676,
+      "ath_mcap": 64476790460.80474,
+      "ath_at": "2026-10-09T16:00:11.988Z",
+      "first_mcap": 64468339022.841034,
+      "first_seen": "2026-10-09T15:54:53.355Z",
+      "created_at": "2021-03-29T10:05:48.000Z",
+      "graduated_at": null,
+      "died_at": null,
+      "status_changed_at": "2026-10-09T15:56:50.088Z"
+    }
+  ]
+}</code></pre>
+
+<h2 id="get-api-tokens-chain-address"><span class="method">GET</span><span class="route">/api/tokens/:chain/:address</span><a class="anchor" href="#get-api-tokens-chain-address" aria-label="Link to this section">#</a></h2>
+<p>Everything recorded about one token. Responds <code>404</code> with <code>{"error":"token not found"}</code> for an unknown token.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Field</th><th>Contents</th></tr></thead>
+<tbody>
+<tr><td><code>token</code></td><td>The full <code>tokens</code> row.</td></tr>
+<tr><td><code>pairs</code></td><td>DEX pools, newest first.</td></tr>
+<tr><td><code>snapshots</code></td><td>Up to 1500 most recent snapshots, returned oldest first: <code>ts, price_usd, mcap, liquidity, vol_1h, vol_24h, holders, buys_24h, sells_24h, traders_24h, organic_score, top_holders_pct</code>.</td></tr>
+<tr><td><code>lists</code></td><td>Per discovery list: best rank, appearance count, first and last time.</td></tr>
+<tr><td><code>events</code></td><td>Launch events for the token, oldest first.</td></tr>
+<tr><td><code>trades</code></td><td>Up to 100 most recent persisted trades, joined to wallet labels.</td></tr>
+<tr><td><code>positions</code></td><td>Up to 25 wallet positions ordered by amount bought, joined to labels.</td></tr>
+<tr><td><code>heat</code></td><td>Live firehose heat for the token. Solana only, <code>null</code> when the firehose is off or the token is cold.</td></tr>
+</tbody></table></div>
+<pre><code class="language-json">{
+  "token": {
+    "chain": "solana",
+    "address": "FDJqEqqS68jummd8XGtBqzJTu2Pgc3pGQjozrpUzpump",
+    "symbol": "Altai",
+    "name": "Altai the Tiger",
+    "decimals": 6,
+    "description": "",
+    "website": null,
+    "twitter": "https://x.com/altai_sol?s=11",
+    "telegram": null,
+    "launchpad": "pump.fun",
+    "creator": "AB35YcJ1Zpom1bp1BnAvjn7k4snoAPm4SeEd558d9w3y",
+    "created_at": "2026-10-10T13:29:46.000Z",
+    "first_seen": "2026-10-10T20:49:55.184Z",
+    "last_seen": "2026-10-10T20:50:28.055Z",
+    "last_snapshot_at": "2026-10-10T20:50:28.055Z",
+    "category": "animal",
+    "categories": [
+      "animal"
+    ],
+    "tech_score": 0.2,
+    "classified_at": "2026-10-10T20:49:57.371Z",
+    "tags": [
+      "token-2022",
+      "unknown"
+    ],
+    "verified": null,
+    "last_price": 0.0003297861387340371,
+    "last_mcap": 314064.78595722513,
+    "last_liquidity": 38788.82877527442,
+    "last_volume_24h": 8638370.999944214,
+    "last_holders": 2297,
+    "last_change_24h": 2241.4512,
+    "first_mcap": 314064.78595722513,
+    "ath_mcap": 314064.78595722513,
+    "ath_at": "2026-10-10T20:50:28.055Z",
+    "peak_volume_24h": 8638370.999944214,
+    "status": "running",
+    "status_changed_at": "2026-10-10T20:50:42.489Z",
+    "graduated_at": "2026-10-10T13:44:57.000Z",
+    "died_at": null
+  },
+  "pairs": [
+    {
+      "chain": "solana",
+      "address": "DU79t3yoStzeN9StbcXViGFB3xj44yDCyCtddP2ya2wd",
+      "token_address": "FDJqEqqS68jummd8XGtBqzJTu2Pgc3pGQjozrpUzpump",
+      "dex": "pumpswap",
+      "quote_symbol": "SOL",
+      "labels": [],
+      "created_at": "2026-10-10T13:44:57.000Z",
+      "url": "https://dexscreener.com/solana/du79t3yostzen9stbcxvigfb3xj44ydcyctddp2ya2wd"
+    }
+  ],
+  "snapshots": [
+    {
+      "ts": "2026-10-10T20:50:28.055Z",
+      "price_usd": 0.0003297861387340371,
+      "mcap": 314064.78595722513,
+      "liquidity": 38788.82877527442,
+      "vol_1h": 100521.35195381555,
+      "vol_24h": 8638370.999944214,
+      "holders": 2297,
+      "buys_24h": 48060,
+      "sells_24h": 48991,
+      "traders_24h": 9313,
+      "organic_score": 75,
+      "top_holders_pct": 26.11864
+    }
+  ],
+  "lists": [
+    {
+      "list": "dex:profiles",
+      "best_rank": 9,
+      "appearances": 2,
+      "first_ts": "2026-10-10T20:45:28.053Z",
+      "last_ts": "2026-10-10T20:50:28.055Z"
+    }
+  ],
+  "events": [],
+  "trades": [],
+  "positions": [],
+  "heat": null
+}</code></pre>
+
+<h2 id="get-api-tokens-chain-address-candles"><span class="method">GET</span><span class="route">/api/tokens/:chain/:address/candles</span><a class="anchor" href="#get-api-tokens-chain-address-candles" aria-label="Link to this section">#</a></h2>
+<p>OHLCV candles for the token's newest pool, fetched live from GeckoTerminal (not stored in the archive). Up to 300 candles, oldest first.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>tf</code></td><td>string</td><td><code>1m</code>, <code>5m</code>, <code>15m</code> (default), <code>1h</code>, <code>4h</code>, <code>1d</code>.</td></tr>
+</tbody></table></div>
+<p>The response has <code>candles</code>, <code>source</code> and, on success, <code>pool</code>. <code>source</code> is <code>geckoterminal</code> on success, <code>none</code> when Pulse has no pool for the token, and <code>unavailable</code> (with an <code>error</code> string) when the upstream call fails. Each candle is <code>{time, open, high, low, close, volume}</code> with <code>time</code> in Unix seconds.</p>
+<pre><code class="language-json">{
+  "candles": [
+    {
+      "time": 1791637200,
+      "open": 0.00004163304555289392,
+      "high": 0.00026714241397987187,
+      "low": 0.00002535371499509234,
+      "close": 0.00022522849120936112,
+      "volume": 302569.54368149297
+    },
+    {
+      "time": 1791640800,
+      "open": 0.00022522849120936112,
+      "high": 0.0016262733827770027,
+      "low": 0.00017436239805011084,
+      "close": 0.0008610642881990726,
+      "volume": 3801661.058165243
+    }
+  ],
+  "source": "geckoterminal",
+  "pool": "DU79t3yoStzeN9StbcXViGFB3xj44yDCyCtddP2ya2wd"
+}</code></pre>
+
+<h2 id="get-api-pump-mint"><span class="method">GET</span><span class="route">/api/pump/:mint</span><a class="anchor" href="#get-api-pump-mint" aria-label="Link to this section">#</a></h2>
+<p>Proxies pump.fun's own record of a coin by mint address, including fields Pulse does not archive. Returns <code>{"error":"not found"}</code> when pump.fun has no such coin or cannot be reached.</p>
+<pre><code class="language-json">{
+  "error": "not found"
+}</code></pre>
+
+<h2 id="get-api-launches"><span class="method">GET</span><span class="route">/api/launches</span><a class="anchor" href="#get-api-launches" aria-label="Link to this section">#</a></h2>
+<p>Launch, graduation and pool events, newest first, joined to the token's current market cap, volume and status.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td>string</td><td><code>solana</code> or <code>robinhood</code>.</td></tr>
+<tr><td><code>kind</code></td><td>string</td><td><code>launch</code>, <code>graduation</code> or <code>pool</code>.</td></tr>
+<tr><td><code>limit</code></td><td>integer</td><td>1 to 500, default 100.</td></tr>
+</tbody></table></div>
+<pre><code class="language-json">{
+  "rows": [
+    {
+      "ts": "2026-10-09T16:04:01.000Z",
+      "chain": "solana",
+      "kind": "launch",
+      "token": "6Q7QKJHRraB16eUwg185LtDSGNxmhuZSWjn8EwCupump",
+      "launchpad": "pump",
+      "actor": "8ARiUQUYgZPWiw1Sy1EcnKssQStRkus1vfNH8zavo96T",
+      "name": "PepeBall",
+      "symbol": "PEPEBALS",
+      "last_mcap": null,
+      "last_volume_24h": null,
+      "status": "new"
+    },
+    {
+      "ts": "2026-10-09T16:03:53.000Z",
+      "chain": "solana",
+      "kind": "launch",
+      "token": "FnZF5BW55V6ZXskxBEAwoh817en4nRF3nePi6KPmpump",
+      "launchpad": "pump",
+      "actor": "FQXyscafwmteTNZrxgg4uFR6rmT1YQuXe441rZc2zVZC",
+      "name": "Super Influencers",
+      "symbol": "SI",
+      "last_mcap": null,
+      "last_volume_24h": null,
+      "status": "new"
+    }
+  ]
+}</code></pre>
+
+<h2 id="get-api-wallets"><span class="method">GET</span><span class="route">/api/wallets</span><a class="anchor" href="#get-api-wallets" aria-label="Link to this section">#</a></h2>
+<p>Labelled wallets ordered by Pulse score (unscored last), then by trades in the last 24 hours. Returns at most 200 rows. Score columns are <code>null</code> until a wallet has recorded positions, see <a href="how-it-works.html#wallet-scoring">Wallet scoring</a>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>kind</code></td><td>string</td><td><code>kol</code> or <code>smart</code>.</td></tr>
+</tbody></table></div>
+<pre><code class="language-json">{
+  "rows": [
+    {
+      "chain": "solana",
+      "address": "23fwPE81JitXcRC1Rm1iQKLwgx3bQYaa5xG1Dknpkp35",
+      "label": null,
+      "kind": "smart",
+      "score": null,
+      "win_rate": null,
+      "tokens_traded": null,
+      "early_hits": null,
+      "best_multiple": null,
+      "pnl_usd": null,
+      "trades_24h": 0
+    }
+  ]
+}</code></pre>
+
+<h2 id="get-api-wallets-address"><span class="method">GET</span><span class="route">/api/wallets/:address</span><a class="anchor" href="#get-api-wallets-address" aria-label="Link to this section">#</a></h2>
+<p>One wallet: the <code>wallets</code> row joined to its score, up to 100 positions (joined to token symbol, market cap and status) and up to 100 recent trades. An unknown address returns <code>{"wallet":null,"positions":[],"trades":[]}</code> with status 200.</p>
+<pre><code class="language-json">{
+  "wallet": {
+    "chain": "solana",
+    "address": "8deJ9xeUvXSJwicYptA9mHsU2rN2pDx37KWzkDkEXhU6",
+    "label": "Cooker",
+    "kind": "kol",
+    "first_seen": "2026-10-09T15:54:54.669Z",
+    "updated_at": "2026-10-10T20:50:01.155Z",
+    "meta": {
+      "24h": {
+        "wins": 47,
+        "losses": 1,
+        "pnlSol": 384.1629365706123
+      }
+    },
+    "score": null,
+    "win_rate": null,
+    "tokens_traded": null,
+    "early_hits": null,
+    "best_multiple": null,
+    "pnl_usd": null
+  },
+  "positions": [],
+  "trades": []
+}</code></pre>
+
+<h2 id="get-api-reports"><span class="method">GET</span><span class="route">/api/reports</span><a class="anchor" href="#get-api-reports" aria-label="Link to this section">#</a></h2>
+<p>Stored newsletter issues, newest first, up to 120. <code>sent</code> is true once the issue went out on Telegram.</p>
+<pre><code class="language-json">{
+  "rows": [
+    {
+      "day": "2026-10-09T00:00:00.000Z",
+      "generated_at": "2026-10-09T15:57:15.853Z",
+      "sent": false
+    }
+  ]
+}</code></pre>
+
+<h2 id="get-api-reports-day"><span class="method">GET</span><span class="route">/api/reports/:day</span><a class="anchor" href="#get-api-reports-day" aria-label="Link to this section">#</a></h2>
+<p>One stored issue by <code>YYYY-MM-DD</code>: <code>day</code>, <code>generated_at</code>, <code>data</code> (the structured sections), <code>markdown</code>, <code>html</code> and <code>telegram</code> (send receipt or <code>null</code>). Returns <code>404</code> with <code>{"error":"no report for that day"}</code> when none exists.</p>
+<pre><code class="language-json">{
+  "day": "2026-10-09T00:00:00.000Z",
+  "generated_at": "2026-10-09T15:57:15.853Z",
+  "data": {
+    "day": "2026-10-09",
+    "dead": [],
+    "dying": [],
+    "stats": {
+      "snapshots24h": 1155,
+      "archiveTokens": 1583,
+      "tokensSeen24h": 1583,
+      "walletsTracked": 752,
+      "archiveSnapshots": 1155,
+      "tradesRecorded24h": 0
+    },
+    "markets": [
+      {
+        "chain": "solana",
+        "native_usd": 109.50078265692568,
+        "total_mcap": 98570612863.13484,
+        "launches_24h": 0,
+        "tracked_tokens": 631,
+        "graduations_24h": 0,
+        "mcap_change_pct": null,
+        "total_volume_24h": 6662631270.839499
+      }
+    ],
+    "runners": [
+      {
+        "mcap": 687899.8408945301,
+        "name": "FrontLine",
+        "chain": "solana",
+        "status": "running",
+        "symbol": "FPS",
+        "address": "258hQ12j9UeGdiEaJzYuMjrgPFbsveNuK72uVKAR3DQj",
+        "holders": 301,
+        "ath_mcap": 687899.8408945301
+      }
+    ],
+    "launches": [
+      {
+        "chain": "robinhood",
+        "launches": 917,
+        "launchpad": "pons",
+        "graduations": 0
+      }
+    ],
+    "promoted": [
+      {
+        "mcap": 310359,
+        "name": "Gary the Cat",
+        "chain": "solana",
+        "status": "running",
+        "symbol": "Gary",
+        "address": "8ZCmwpW3MtC5UpNcZf7U4HMvRNTo71syU11BDiAFpump",
+        "holders": null,
+        "ath_mcap": 310359
+      }
+    ],
+    "kolTokens": [],
+    "narrative": null,
+    "robinhood": [
+      {
+        "mcap": 234491890,
+        "name": "Pons",
+        "chain": "robinhood",
+        "status": "new",
+        "symbol": "PONS",
+        "address": "0x39dBED3a2bd333467115dE45665cC57F813C4571",
+        "holders": null,
+        "ath_mcap": null
+      }
+    ],
+    "techPicks": [
+      {
+        "mcap": 892756.4577401152,
+        "name": "Claudia",
+        "chain": "solana",
+        "status": "running",
+        "symbol": "CLAUDIA",
+        "address": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM",
+        "holders": 2935,
+        "ath_mcap": 892756.4577401152
+      }
+    ],
+    "topVolume": [
+      {
+        "mcap": 627898529.6902055,
+        "name": "Global Dollar",
+        "chain": "solana",
+        "status": "running",
+        "symbol": "USDG",
+        "address": "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH",
+        "holders": 22338,
+        "ath_mcap": 627898529.6902055
+      }
+    ],
+    "categories": [
+      {
+        "mcap": 2878002946.701584,
+        "tokens": 171,
+        "category": "unclassified",
+        "volume_24h": 378902459.1783221,
+        "avg_change_24h": 703.0264223898916
+      }
+    ],
+    "kolWallets": [],
+    "newRunners": [
+      {
+        "mcap": 32663378.03420661,
+        "name": "Strategic American Protocol",
+        "chain": "solana",
+        "status": "graduated",
+        "symbol": "SARP",
+        "address": "EGxBQN1iPbmfuzc3Ctw24puUma9R4o1SsWFsC3Jzpump",
+        "holders": 2587,
+        "ath_mcap": null
+      }
+    ],
+    "persistent": [
+      {
+        "mcap": 14857535.574725615,
+        "name": "baton",
+        "chain": "solana",
+        "lists": 13,
+        "status": "running",
+        "symbol": "baton",
+        "address": "Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump",
+        "holders": 17887
+      }
+    ],
+    "generatedAt": "2026-10-09T15:57:15.828Z",
+    "smartTokens": [],
+    "windowHours": 24,
+    "smartWallets": [],
+    "holdersGrowth": []
+  },
+  "markdown": "# Pulse daily, 2026-10-09\n\n## Market pulse\n\n- Solana: $98.57B trench mcap, tokens under $1B (n/a), $6.66B 24h volume (n/a), 0 launches, 0 graduations, SOL $109....",
+  "html": "&lt;!doctype html&gt;&lt;html lang=\"en\"&gt;&lt;head&gt;&lt;meta charset=\"utf-8\"&gt;&lt;meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"&gt;&lt;title&gt;Pulse daily 2026-10-09&lt;/tit...",
+  "telegram": null
+}</code></pre>
+
+<h2 id="get-api-reports-day-live"><span class="method">GET</span><span class="route">/api/reports/:day/live</span><a class="anchor" href="#get-api-reports-day-live" aria-label="Link to this section">#</a></h2>
+<p>Recomputes the issue's structured data from the archive right now, without storing or sending anything. Useful for previewing the current day. Same shape as the <code>data</code> field above: <code>day</code>, <code>generatedAt</code>, <code>windowHours</code>, <code>markets</code>, <code>launches</code>, <code>runners</code>, <code>newRunners</code>, <code>techPicks</code>, <code>topVolume</code>, <code>holdersGrowth</code>, <code>persistent</code>, <code>dying</code>, <code>dead</code>, <code>promoted</code>, <code>categories</code>, <code>kolWallets</code>, <code>kolTokens</code>, <code>smartWallets</code>, <code>smartTokens</code>, <code>robinhood</code> and <code>stats</code>.</p>
+<pre><code class="language-json">{
+  "day": "2026-10-09",
+  "generatedAt": "2026-10-10T20:50:51.953Z",
+  "windowHours": 24,
+  "markets": [
+    {
+      "chain": "solana",
+      "native_usd": 110.30003830152059,
+      "total_mcap": 15421100390.408724,
+      "total_volume_24h": 547954842.8412031,
+      "tracked_tokens": 1202,
+      "launches_24h": 0,
+      "graduations_24h": 0,
+      "mcap_change_pct": 1.9389604691203752
+    }
+  ],
+  "launches": [
+    {
+      "chain": "robinhood",
+      "launchpad": "pons",
+      "launches": 2348,
+      "graduations": 0
+    }
+  ],
+  "runners": [
+    {
+      "chain": "robinhood",
+      "address": "0x000050E18ffa3F8F7aD170Eb9CeF160eb3Ed1111",
+      "symbol": "TORCH",
+      "name": "Torch",
+      "category": "launchpad",
+      "tech_score": 0.75,
+      "status": "running",
+      "mcap": 930348
+    }
+  ],
+  "newRunners": [
+    {
+      "chain": "solana",
+      "address": "jmPbUtnPpKUWgDDicW14WxvW5vvbw5sdrNknHULpump",
+      "symbol": "USDF",
+      "name": "United States Dividend Fund",
+      "category": "unclassified",
+      "tech_score": 0.4,
+      "status": "running",
+      "mcap": 827059261.1876895
+    }
+  ],
+  "techPicks": [
+    {
+      "chain": "solana",
+      "address": "2j5SaS7xy776qCBpyPQbZjyQSAtKiFgrwjfErthnW2ZM",
+      "symbol": "CLAUDIA",
+      "name": "Claudia",
+      "category": "ai",
+      "tech_score": 1,
+      "status": "running",
+      "mcap": 3035773.354698343
+    }
+  ],
+  "dying": [
+    {
+      "chain": "solana",
+      "address": "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1",
+      "symbol": "CRCLx",
+      "name": "Circle xStock",
+      "category": "rwa",
+      "tech_score": 0.75,
+      "status": "dying",
+      "mcap": 70491670.29391104
+    }
+  ],
+  "dead": [
+    {
+      "chain": "solana",
+      "address": "46hMQPKT2sPwMSkVenXnpiKVQhrkFvJLSYMWtdkipump",
+      "symbol": "D O T F",
+      "name": "DOTF",
+      "category": "unclassified",
+      "tech_score": 0.4,
+      "status": "dead",
+      "mcap": 3657.3777532936906
+    }
+  ],
+  "topVolume": [
+    {
+      "chain": "solana",
+      "address": "SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb",
+      "symbol": "SPCX",
+      "name": "SpaceX - Backpack Securities",
+      "category": "rwa",
+      "tech_score": 0.75,
+      "status": "running",
+      "mcap": 7547015.908372643
+    }
+  ],
+  "holdersGrowth": [
+    {
+      "chain": "solana",
+      "address": "ERkmk5rs8KKD9u2fxoDZUmwwuVc7rT3sSeowGTrQuBit",
+      "symbol": "QUBIT",
+      "name": "QUBIT",
+      "category": "unclassified",
+      "tech_score": 0.4,
+      "status": "running",
+      "mcap": 164520.42781201043
+    }
+  ],
+  "persistent": [
+    {
+      "chain": "solana",
+      "address": "SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb",
+      "symbol": "SPCX",
+      "name": "SpaceX - Backpack Securities",
+      "category": "rwa",
+      "tech_score": 0.75,
+      "status": "running",
+      "mcap": 7547015.908372643
+    }
+  ],
+  "promoted": [
+    {
+      "chain": "solana",
+      "address": "BQAeeSowpwEx8Km8GcporcbuLKq4a7EQceH3F2qZpump",
+      "symbol": "qOMPUTE",
+      "name": "qOMPUTE",
+      "category": "infra",
+      "tech_score": 0.75,
+      "status": "running",
+      "mcap": 883755.8539648413
+    }
+  ],
+  "categories": [
+    {
+      "category": "unclassified",
+      "tokens": 262,
+      "volume_24h": 217769313.24709335,
+      "mcap": 4217300705.917731,
+      "avg_change_24h": 186.3606074500956
+    }
+  ],
+  "kolWallets": [],
+  "smartWallets": [],
+  "kolTokens": [],
+  "smartTokens": [],
+  "robinhood": [
+    {
+      "chain": "robinhood",
+      "address": "0x39dBED3a2bd333467115dE45665cC57F813C4571",
+      "symbol": "PONS",
+      "name": "Pons",
+      "category": "unclassified",
+      "tech_score": 0.55,
+      "status": "running",
+      "mcap": 248346527
+    }
+  ],
+  "stats": {
+    "tokensSeen24h": 3666,
+    "snapshots24h": 1833,
+    "tradesRecorded24h": 0,
+    "walletsTracked": 764,
+    "archiveTokens": 5477,
+    "archiveSnapshots": 4261
+  }
+}</code></pre>
+
+<h2 id="get-api-export-table"><span class="method">GET</span><span class="route">/api/export/:table</span><a class="anchor" href="#get-api-export-table" aria-label="Link to this section">#</a></h2>
+<p>Raw rows, for analysis or model training. Allowed tables: <code>tokens</code>, <code>token_snapshots</code>, <code>trades</code>, <code>launch_events</code>, <code>wallets</code>, <code>wallet_scores</code>, <code>wallet_positions</code>, <code>market_snapshots</code>, <code>list_appearances</code>. Any other table returns <code>400</code>. Rows come in storage order, not sorted by time.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>limit</code></td><td>integer</td><td>1 to 100000, default 10000.</td></tr>
+</tbody></table></div>
+<pre><code class="language-bash">curl -s "http://localhost:8787/api/export/market_snapshots?limit=1"</code></pre>
+<pre><code class="language-json">{
+  "table": "market_snapshots",
+  "rows": [
+    {
+      "ts": "2026-10-09T15:54:36.513Z",
+      "chain": "solana",
+      "native_usd": 109.54923272285733,
+      "tracked_tokens": 541,
+      "total_mcap": 98437580086.30959,
+      "total_volume_24h": 6662829921.434305,
+      "launches_1h": 0,
+      "graduations_1h": 0,
+      "stream_trades_1h": null,
+      "stream_volume_1h": null,
+      "data": {}
+    }
+  ]
+}</code></pre>
+<p>An invalid table:</p>
+<pre><code class="language-json">{
+  "error": "table must be one of tokens, token_snapshots, trades, launch_events, wallets, wallet_scores, wallet_positions, market_snapshots, list_appearances"
+}</code></pre>
+<div class="note"><p><strong>Large exports.</strong> The route serializes the whole result in memory. For millions of rows, read Postgres directly with <code>DATABASE_URL</code> instead.</p></div>
+
+<h2 id="everything-else">Everything else<a class="anchor" href="#everything-else" aria-label="Link to this section">#</a></h2>
+<p>Any other path serves the built dashboard. If the dashboard has not been built, the root returns a short text hint to run <code>npm run build</code>.</p>
+
+<div class="pager">
+<a class="prev" href="data-model.html" rel="prev"><small>Previous</small>Data model</a>
+<a class="next" href="mcp.html" rel="next"><small>Next</small>MCP server</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#conventions">Conventions</a></li><li><a href="#get-api-health">GET/api/health</a></li><li><a href="#get-api-overview">GET/api/overview</a></li><li><a href="#get-api-tokens">GET/api/tokens</a></li><li><a href="#get-api-tokens-chain-address">GET/api/tokens/:chain/:address</a></li><li><a href="#get-api-tokens-chain-address-candles">GET/api/tokens/:chain/:address/candles</a></li><li><a href="#get-api-pump-mint">GET/api/pump/:mint</a></li><li><a href="#get-api-launches">GET/api/launches</a></li><li><a href="#get-api-wallets">GET/api/wallets</a></li><li><a href="#get-api-wallets-address">GET/api/wallets/:address</a></li><li><a href="#get-api-reports">GET/api/reports</a></li><li><a href="#get-api-reports-day">GET/api/reports/:day</a></li><li><a href="#get-api-reports-day-live">GET/api/reports/:day/live</a></li><li><a href="#get-api-export-table">GET/api/export/:table</a></li><li><a href="#everything-else">Everything else</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration | Pulse docs</title>
+<meta name="description" content="Every Pulse environment variable with its default: database, port, newsletter schedule, Telegram, optional written overview, snapshot interval, firehose and RPC endpoints.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/configuration.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Configuration | Pulse docs">
+<meta property="og:description" content="Every Pulse environment variable with its default: database, port, newsletter schedule, Telegram, optional written overview, snapshot interval, firehose and RPC endpoints.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/configuration.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Configuration | Pulse docs">
+<meta name="twitter:description" content="Every Pulse environment variable with its default: database, port, newsletter schedule, Telegram, optional written overview, snapshot interval, firehose and RPC endpoints.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Configuration","description":"Every Pulse environment variable with its default: database, port, newsletter schedule, Telegram, optional written overview, snapshot interval, firehose and RPC endpoints.","url":"https://nirholas.github.io/pulse/docs/configuration.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/configuration.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"Configuration","item":"https://nirholas.github.io/pulse/docs/configuration.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html" aria-current="page">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">Configuration</li></ol></nav>
+<h1>Configuration</h1>
+<p class="lead">Pulse is configured entirely through environment variables. Every one has a default, so an empty environment still runs.</p>
+<h2 id="how-configuration-loads">How configuration loads<a class="anchor" href="#how-configuration-loads" aria-label="Link to this section">#</a></h2>
+<p>Node 24 reads env files natively, so there is no dotenv dependency. Pulse loads <code>.env.local</code> first and then <code>.env</code> from the working directory. A variable already set in the real environment wins over both files, and <code>.env.local</code> wins over <code>.env</code>. Empty values are treated as unset.</p>
+<p>Numeric variables must be positive integers. Anything else falls back to the default. Comma-separated variables are split on commas with whitespace trimmed.</p>
+
+<h2 id="environment-variables">Environment variables<a class="anchor" href="#environment-variables" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<caption>All variables read by <code>src/lib/env.ts</code>. The first group matches <code>.env.example</code>.</caption>
+<thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>DATABASE_URL</code></td><td>empty</td><td>Postgres connection string. Empty uses the embedded PGlite archive. Example with the bundled compose file: <code>postgres://pulse:pulse@localhost:5544/pulse</code>.</td></tr>
+<tr><td><code>PORT</code></td><td><code>8787</code></td><td>Port for the API and dashboard.</td></tr>
+<tr><td><code>PUBLIC_URL</code></td><td>empty</td><td>Public base URL of the dashboard. When set, each Telegram issue starts with an "Open the dashboard" link to <code>PUBLIC_URL/#/reports/&lt;day&gt;</code>.</td></tr>
+<tr><td><code>REPORT_TIMEZONE</code></td><td><code>UTC</code></td><td>IANA time zone that defines the newsletter's local day.</td></tr>
+<tr><td><code>REPORT_HOUR</code></td><td><code>13</code></td><td>Local hour (0-23) at or after which the day's issue is generated, once per local day.</td></tr>
+<tr><td><code>TELEGRAM_BOT_TOKEN</code></td><td>empty</td><td>Bot token from @BotFather. Sending needs both this and <code>TELEGRAM_CHAT_ID</code>.</td></tr>
+<tr><td><code>TELEGRAM_CHAT_ID</code></td><td>empty</td><td>Target chat or channel, for example <code>@my_channel</code>. The bot must be an admin of the channel.</td></tr>
+<tr><td><code>ANTHROPIC_API_KEY</code></td><td>empty</td><td>Optional. Adds a short written overview at the top of each issue, constrained to that day's data. Without it the issue is data only.</td></tr>
+<tr><td><code>ANTHROPIC_MODEL</code></td><td><code>claude-sonnet-5-5</code></td><td>Model used for the written overview.</td></tr>
+<tr><td><code>SNAPSHOT_EVERY_MIN</code></td><td><code>5</code></td><td>Minutes between collection cycles.</td></tr>
+<tr><td><code>STREAMS</code></td><td><code>on</code></td><td>Set to <code>off</code> to disable the Solana firehose. The collector, API and dashboard keep running.</td></tr>
+<tr><td><code>SOLANA_RPC_URLS</code></td><td><code>https://api.mainnet-beta.solana.com</code></td><td>Comma-separated Solana HTTP RPC endpoints.</td></tr>
+<tr><td><code>SOLANA_WS_URLS</code></td><td><code>wss://api.mainnet-beta.solana.com</code></td><td>Comma-separated Solana WebSocket endpoints for the firehose log subscription. The public endpoint drops connections often. A dedicated endpoint keeps the stream steady.</td></tr>
+<tr><td><code>ROBINHOOD_RPC_URLS</code></td><td><code>https://rpc.mainnet.chain.robinhood.com</code></td><td>Comma-separated Robinhood Chain RPC endpoints used to read launchpad factory logs.</td></tr>
+<tr><td><code>PGLITE_DIR</code></td><td><code>./data/pglite</code></td><td>Directory of the embedded PGlite archive. Only used when <code>DATABASE_URL</code> is empty. Not listed in <code>.env.example</code>.</td></tr>
+</tbody></table></div>
+
+<h2 id="mcp-server-variable">MCP server variable<a class="anchor" href="#mcp-server-variable" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>PULSE_URL</code></td><td><code>http://localhost:8787</code></td><td>Base URL of the Pulse API that <code>pulse-mcp</code> reads. Set it in the MCP client's <code>env</code> block. See <a href="mcp.html">MCP server</a>.</td></tr>
+</tbody></table></div>
+
+<h2 id="command-line-flags">Command-line flags<a class="anchor" href="#command-line-flags" aria-label="Link to this section">#</a></h2>
+<p>Flags are read by the entry point <code>src/main.ts</code> (also reachable through <code>pulse start</code> and <code>pulse collect</code>).</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Flag</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td><code>--once</code></td><td>Run one collection cycle and exit. No firehose, no server.</td></tr>
+<tr><td><code>--jobs</code></td><td>With <code>--once</code>, also import wallet labels and score wallets now instead of waiting for their cadence.</td></tr>
+<tr><td><code>--no-stream</code></td><td>Do not start the Solana firehose, regardless of <code>STREAMS</code>.</td></tr>
+<tr><td><code>--no-server</code></td><td>Do not start the API and dashboard.</td></tr>
+<tr><td><code>--migrate</code></td><td>Apply migrations and exit.</td></tr>
+</tbody></table></div>
+
+<h2 id="cadences-that-are-not-configurable">Cadences that are not configurable<a class="anchor" href="#cadences-that-are-not-configurable" aria-label="Link to this section">#</a></h2>
+<ul>
+<li>Wallet label import: when the last import is older than 24 hours.</li>
+<li>Wallet scoring: when the last run is older than 1 hour.</li>
+<li>Newsletter: once per local day, at or after <code>REPORT_HOUR</code>.</li>
+</ul>
+<p>Each of these is checked at the end of every collection cycle, so the effective resolution is <code>SNAPSHOT_EVERY_MIN</code>.</p>
+
+<div class="note"><p><strong>Secrets.</strong> Keep <code>TELEGRAM_BOT_TOKEN</code>, <code>ANTHROPIC_API_KEY</code> and any RPC URLs that embed an API key in your secret manager or an untracked <code>.env</code>. <code>.env</code> and <code>.env.local</code> are in the repository's <code>.gitignore</code>.</p></div>
+
+<div class="pager">
+<a class="prev" href="getting-started.html" rel="prev"><small>Previous</small>Getting started</a>
+<a class="next" href="how-it-works.html" rel="next"><small>Next</small>How it works</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#how-configuration-loads">How configuration loads</a></li><li><a href="#environment-variables">Environment variables</a></li><li><a href="#mcp-server-variable">MCP server variable</a></li><li><a href="#command-line-flags">Command-line flags</a></li><li><a href="#cadences-that-are-not-configurable">Cadences that are not configurable</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FAQ | Pulse docs</title>
+<meta name="description" content="Answers about Pulse: cost, API keys, data sources, what the statuses mean, why scores are empty, security, using it with trading bots, and how to troubleshoot.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/faq.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FAQ | Pulse docs">
+<meta property="og:description" content="Answers about Pulse: cost, API keys, data sources, what the statuses mean, why scores are empty, security, using it with trading bots, and how to troubleshoot.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/faq.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FAQ | Pulse docs">
+<meta name="twitter:description" content="Answers about Pulse: cost, API keys, data sources, what the statuses mean, why scores are empty, security, using it with trading bots, and how to troubleshoot.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"FAQ","description":"Answers about Pulse: cost, API keys, data sources, what the statuses mean, why scores are empty, security, using it with trading bots, and how to troubleshoot.","url":"https://nirholas.github.io/pulse/docs/faq.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/faq.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"FAQ","item":"https://nirholas.github.io/pulse/docs/faq.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html" aria-current="page">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">FAQ</li></ol></nav>
+<h1>FAQ</h1>
+<p class="lead">Short answers to the questions that come up most. Each links to the page with the full detail.</p>
+<h2 id="general">General<a class="anchor" href="#general" aria-label="Link to this section">#</a></h2>
+<h3 id="what-is-pulse">What is Pulse?<a class="anchor" href="#what-is-pulse" aria-label="Link to this section">#</a></h3>
+<p>A self-hosted program that watches Solana and Robinhood Chain token launches, records them in a database you own, tracks which tokens run and which fade, scores tracked wallets, and gives you the result as a Telegram newsletter, a dashboard, a JSON API and an MCP server. It is MIT licensed.</p>
+<h3 id="is-it-free-does-it-need-api-keys">Is it free? Does it need API keys?<a class="anchor" href="#is-it-free-does-it-need-api-keys" aria-label="Link to this section">#</a></h3>
+<p>Pulse is free software and needs no keys to run. The data sources it reads need no account. Optional extras are a Telegram bot token for the newsletter, an Anthropic key for the written overview, and a dedicated Solana RPC endpoint, which is not free but is recommended for a steady firehose.</p>
+<h3 id="where-does-the-data-come-from">Where does the data come from?<a class="anchor" href="#where-does-the-data-come-from" aria-label="Link to this section">#</a></h3>
+<p>Solana: Jupiter token lists, DexScreener and GeckoTerminal market data, pump.fun and PumpSwap launches and trades decoded from Solana RPC logs. Robinhood Chain: launchpad factory logs over JSON-RPC, with market data from the same providers. Public KOL leaderboards supply wallet labels. See <a href="how-it-works.html">How it works</a>.</p>
+<h3 id="is-it-a-trading-bot-or-financial-advice">Is it a trading bot or financial advice?<a class="anchor" href="#is-it-a-trading-bot-or-financial-advice" aria-label="Link to this section">#</a></h3>
+<p>No. Pulse never trades and holds no keys. It records and ranks public data. Statuses, categories and scores are heuristics, defined on <a href="how-it-works.html">How it works</a> so you can judge them. Nothing here is financial advice.</p>
+<h3 id="can-i-use-it-to-train-or-test-a-trading-bot">Can I use it to train or test a trading bot?<a class="anchor" href="#can-i-use-it-to-train-or-test-a-trading-bot" aria-label="Link to this section">#</a></h3>
+<p>That is a design goal. The archive keeps full snapshot histories, launch and graduation events, the early buyers of tokens that ran, and the tokens that died. Read it directly from Postgres or through <a href="api.html#get-api-export-table"><code>/api/export</code></a>. Treat the free-text columns as untrusted.</p>
+
+<h2 id="running-it">Running it<a class="anchor" href="#running-it" aria-label="Link to this section">#</a></h2>
+<h3 id="what-do-i-need-to-run-it">What do I need to run it?<a class="anchor" href="#what-do-i-need-to-run-it" aria-label="Link to this section">#</a></h3>
+<p>Node 24 or newer. <code>npm install</code>, <code>npm run build</code>, <code>npm start</code>. See <a href="getting-started.html">Getting started</a>.</p>
+<h3 id="npx-pulse-trenches-fails-what-should-i-run"><code>npx pulse-trenches</code> fails. What should I run?<a class="anchor" href="#npx-pulse-trenches-fails-what-should-i-run" aria-label="Link to this section">#</a></h3>
+<p>The package has two commands, so name the package explicitly: <code>npx -y -p pulse-trenches pulse</code>. The MCP server is <code>npx -y -p pulse-trenches pulse-mcp</code>.</p>
+<h3 id="the-dashboard-is-empty">The dashboard is empty.<a class="anchor" href="#the-dashboard-is-empty" aria-label="Link to this section">#</a></h3>
+<p>It fills after the first collection cycle finishes, usually within a minute or two. Check <code>curl localhost:8787/api/health</code>. A <code>lastCycle</code> of <code>null</code> means no cycle has completed yet. Check the process logs for source failures.</p>
+<h3 id="why-does-stream-say-null-in-the-health-check">Why does <code>stream</code> say <code>null</code> in the health check?<a class="anchor" href="#why-does-stream-say-null-in-the-health-check" aria-label="Link to this section">#</a></h3>
+<p>The firehose is off, either by <code>STREAMS=off</code> or <code>--no-stream</code>. The collector, API and dashboard still work.</p>
+<h3 id="the-firehose-keeps-reconnecting">The firehose keeps reconnecting.<a class="anchor" href="#the-firehose-keeps-reconnecting" aria-label="Link to this section">#</a></h3>
+<p>The public Solana WebSocket endpoint drops connections. Set <code>SOLANA_WS_URLS</code> (and <code>SOLANA_RPC_URLS</code>) to a dedicated provider. A watchdog already restarts the stream after 45 seconds of silence.</p>
+<h3 id="how-much-disk-does-it-use">How much disk does it use?<a class="anchor" href="#how-much-disk-does-it-use" aria-label="Link to this section">#</a></h3>
+<p>It depends on how long it runs and how many tokens it sees. Snapshots are the bulk, one row per token per cycle. Only selected trades are stored, not every trade. On TimescaleDB, old chunks compress after 7 days (30 for market snapshots). Check your own growth with the Archive section of the newsletter.</p>
+<h3 id="can-i-run-it-on-a-serverless-platform">Can I run it on a serverless platform?<a class="anchor" href="#can-i-run-it-on-a-serverless-platform" aria-label="Link to this section">#</a></h3>
+<p>Only with care. It needs an always-running process and an external database. See <a href="deployment.html">Deployment</a>.</p>
+
+<h2 id="data-and-scores">Data and scores<a class="anchor" href="#data-and-scores" aria-label="Link to this section">#</a></h2>
+<h3 id="why-are-wallet-scores-empty">Why are wallet scores empty?<a class="anchor" href="#why-are-wallet-scores-empty" aria-label="Link to this section">#</a></h3>
+<p>Scores come from trades the firehose records. If you ran with <code>--no-stream</code>, or the firehose is new, there are no positions yet and scores stay <code>null</code>. Wallets still list with their labels. Scoring runs hourly.</p>
+<h3 id="what-do-the-statuses-mean">What do the statuses mean?<a class="anchor" href="#what-do-the-statuses-mean" aria-label="Link to this section">#</a></h3>
+<p><code>new</code>, <code>running</code>, <code>graduated</code>, <code>dying</code> and <code>dead</code> follow fixed thresholds on market cap, volume and all-time high. See <a href="how-it-works.html#token-lifecycle">Token lifecycle</a>. Dead is permanent.</p>
+<h3 id="how-does-it-decide-tech-versus-meme">How does it decide tech versus meme?<a class="anchor" href="#how-does-it-decide-tech-versus-meme" aria-label="Link to this section">#</a></h3>
+<p>A transparent keyword and signal scorer over the token's own name, symbol, description and website. It is a first filter, and a token can game it by using the right words. See <a href="how-it-works.html">Classification</a>.</p>
+<h3 id="why-is-a-token-in-the-archive-but-missing-from-the-newsletter">Why is a token in the archive but missing from the newsletter?<a class="anchor" href="#why-is-a-token-in-the-archive-but-missing-from-the-newsletter" aria-label="Link to this section">#</a></h3>
+<p>Issues show tokens that met a section's conditions in the last 24 hours. The archive keeps everything. Query it with the <a href="api.html#get-api-tokens">tokens API</a>.</p>
+<h3 id="does-it-cover-chains-other-than-solana-and-robinhood-chain">Does it cover chains other than Solana and Robinhood Chain?<a class="anchor" href="#does-it-cover-chains-other-than-solana-and-robinhood-chain" aria-label="Link to this section">#</a></h3>
+<p>Not today. Every table is keyed by <code>chain</code> and <code>address</code>, so adding a chain does not change the schema.</p>
+
+<h2 id="newsletter">Newsletter<a class="anchor" href="#newsletter" aria-label="Link to this section">#</a></h2>
+<h3 id="the-newsletter-did-not-arrive">The newsletter did not arrive.<a class="anchor" href="#the-newsletter-did-not-arrive" aria-label="Link to this section">#</a></h3>
+<p>Both <code>TELEGRAM_BOT_TOKEN</code> and <code>TELEGRAM_CHAT_ID</code> must be set, the bot must be allowed to post in the chat, and the local hour must be at or after <code>REPORT_HOUR</code>. A failed send is retried every cycle. See <a href="telegram-newsletter.html">Telegram newsletter</a>.</p>
+<h3 id="can-i-preview-an-issue">Can I preview an issue?<a class="anchor" href="#can-i-preview-an-issue" aria-label="Link to this section">#</a></h3>
+<p>Yes: <code>npm run report -- --no-send --print</code>.</p>
+
+<h2 id="agents-and-security">Agents and security<a class="anchor" href="#agents-and-security" aria-label="Link to this section">#</a></h2>
+<h3 id="how-do-i-connect-claude-or-cursor">How do I connect Claude or Cursor?<a class="anchor" href="#how-do-i-connect-claude-or-cursor" aria-label="Link to this section">#</a></h3>
+<p>Add the <code>pulse-mcp</code> server to the client config. Setup for Claude Desktop, Claude Code and Cursor is on <a href="mcp.html">MCP server</a>.</p>
+<h3 id="is-the-api-safe-to-expose">Is the API safe to expose?<a class="anchor" href="#is-the-api-safe-to-expose" aria-label="Link to this section">#</a></h3>
+<p>It is read-only but has no authentication and enables CORS for all origins. Keep it private or put an authenticated proxy in front. See <a href="deployment.html">Deployment</a>.</p>
+<h3 id="can-token-text-hijack-my-agent">Can token text hijack my agent?<a class="anchor" href="#can-token-text-hijack-my-agent" aria-label="Link to this section">#</a></h3>
+<p>It can try. Names, symbols and descriptions are written by whoever launched the token and can contain instructions aimed at AI readers. Pulse never executes them. Your agent should treat every returned string as data, never as a command, and should never spend or sign anything because of it.</p>
+<h3 id="how-do-i-report-a-bug-or-a-security-issue">How do I report a bug or a security issue?<a class="anchor" href="#how-do-i-report-a-bug-or-a-security-issue" aria-label="Link to this section">#</a></h3>
+<p>Open an issue on <a href="https://github.com/nirholas/pulse/issues" rel="noopener">GitHub</a>. For security reports, follow <code>SECURITY.md</code> in the repository.</p>
+
+<div class="pager">
+<a class="prev" href="deployment.html" rel="prev"><small>Previous</small>Deployment</a>
+<span></span>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#general">General</a></li><li><a href="#running-it">Running it</a></li><li><a href="#data-and-scores">Data and scores</a></li><li><a href="#newsletter">Newsletter</a></li><li><a href="#agents-and-security">Agents and security</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

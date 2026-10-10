@@ -1,6 +1,6 @@
 {
   "name": "pulse-trenches",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Market intelligence for the Solana and Robinhood Chain trenches: live launch firehose, runner and death tracking, KOL and smart-money scoring, tech-vs-meme classification, a Telegram newsletter, a dashboard, an MCP server, and a Postgres archive for training trading bots.",
   "keywords": [
@@ -46,6 +46,7 @@
   },
   "bin": {
     "pulse": "dist/pulse.js",
+    "pulse-trenches": "dist/pulse.js",
     "pulse-mcp": "dist/pulse-mcp.js"
   },
   "files": [

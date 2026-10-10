@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP server | Pulse docs</title>
+<meta name="description" content="Give Claude Desktop, Claude Code, Cursor or any MCP client read-only access to the Pulse archive with eight tools: overview, tokens, launches, wallets, reports and table export.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/mcp.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCP server | Pulse docs">
+<meta property="og:description" content="Give Claude Desktop, Claude Code, Cursor or any MCP client read-only access to the Pulse archive with eight tools: overview, tokens, launches, wallets, reports and table export.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/mcp.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MCP server | Pulse docs">
+<meta name="twitter:description" content="Give Claude Desktop, Claude Code, Cursor or any MCP client read-only access to the Pulse archive with eight tools: overview, tokens, launches, wallets, reports and table export.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"MCP server","description":"Give Claude Desktop, Claude Code, Cursor or any MCP client read-only access to the Pulse archive with eight tools: overview, tokens, launches, wallets, reports and table export.","url":"https://nirholas.github.io/pulse/docs/mcp.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/mcp.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"MCP server","item":"https://nirholas.github.io/pulse/docs/mcp.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html" aria-current="page">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html" aria-current="page">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">MCP server</li></ol></nav>
+<h1>MCP server</h1>
+<p class="lead">The Pulse MCP server is a small stdio process that turns the JSON API into eight read-only tools. Your agent can then screen tokens, inspect a wallet or read the latest newsletter without you pasting data.</p>
+<h2 id="how-it-works">How it works<a class="anchor" href="#how-it-works" aria-label="Link to this section">#</a></h2>
+<p><code>pulse-mcp</code> does not open the database. It calls the Pulse HTTP API, so a Pulse instance must be running and reachable. Start one with <code>npx -y -p pulse-trenches pulse</code> (see <a href="getting-started.html">Getting started</a>) and point the MCP server at it with <code>PULSE_URL</code>.</p>
+<ul>
+<li><strong>Transport:</strong> stdio. The client launches the process.</li>
+<li><strong>Server name and version:</strong> <code>pulse</code>, <code>0.1.0</code>.</li>
+<li><strong>Read-only:</strong> every tool is annotated <code>readOnlyHint: true</code> and <code>openWorldHint: false</code>. Nothing writes to the archive or calls out to the internet.</li>
+<li><strong>Output:</strong> each tool returns the API's JSON as text.</li>
+</ul>
+
+<h2 id="tools">Tools<a class="anchor" href="#tools" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Tool</th><th>Inputs</th><th>What it returns</th></tr></thead>
+<tbody>
+<tr><td><code>pulse_overview</code></td><td>none</td><td>Market totals, status counts, sectors, launch counts, hot tokens and the lifecycle rules. Same as <a href="api.html#get-api-overview"><code>/api/overview</code></a>.</td></tr>
+<tr><td><code>pulse_tokens</code></td><td><code>chain</code>, <code>status</code>, <code>sort</code> (default <code>volume</code>), <code>category</code>, <code>launchpad</code>, <code>tech</code> (boolean), <code>minMcap</code>, <code>minVolume</code>, <code>q</code>, <code>limit</code> (default 25, max 200), <code>offset</code></td><td>Filtered token list with <code>total</code> and <code>rows</code>. See <a href="api.html#get-api-tokens"><code>/api/tokens</code></a>.</td></tr>
+<tr><td><code>pulse_token</code></td><td><code>chain</code>, <code>address</code></td><td>One token with pools, snapshots, list appearances, events, trades and wallet positions.</td></tr>
+<tr><td><code>pulse_launches</code></td><td><code>chain</code>, <code>kind</code> (<code>launch</code> or <code>graduation</code>), <code>limit</code> (default 100, max 500)</td><td>Recent launch and graduation events.</td></tr>
+<tr><td><code>pulse_wallets</code></td><td><code>kind</code> (<code>kol</code> or <code>smart</code>)</td><td>Ranked labelled wallets with rolling scores.</td></tr>
+<tr><td><code>pulse_wallet</code></td><td><code>address</code></td><td>One wallet with its positions and recent trades.</td></tr>
+<tr><td><code>pulse_report</code></td><td><code>day</code> (optional, <code>YYYY-MM-DD</code>)</td><td>With a day, that issue's structured data and rendered text. Without one, the list of stored issues.</td></tr>
+<tr><td><code>pulse_export</code></td><td><code>table</code>, <code>limit</code> (default 500, max 5000)</td><td>Raw rows from one of nine archive tables.</td></tr>
+</tbody></table></div>
+<p>Enumerated inputs (<code>chain</code>, <code>status</code>, <code>sort</code>, <code>table</code>) are validated with zod before the request is made, so a model that guesses a wrong value gets a clear schema error instead of an empty result.</p>
+
+<h2 id="configuration">Configuration<a class="anchor" href="#configuration" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td><code>PULSE_URL</code></td><td><code>http://localhost:8787</code></td><td>Base URL of the Pulse API. Point it at a remote instance if Pulse runs elsewhere.</td></tr>
+</tbody></table></div>
+
+<h2 id="client-setup">Client setup<a class="anchor" href="#client-setup" aria-label="Link to this section">#</a></h2>
+<p>All three clients take the same server entry. The <code>-p pulse-trenches</code> form is needed because the package ships two commands.</p>
+<pre><code class="language-json">{
+  "command": "npx",
+  "args": ["-y", "-p", "pulse-trenches", "pulse-mcp"]
+}</code></pre>
+
+<h3 id="claude-desktop">Claude Desktop<a class="anchor" href="#claude-desktop" aria-label="Link to this section">#</a></h3>
+<p>Open Settings, Developer, Edit Config, and add the server to <code>claude_desktop_config.json</code>. Restart Claude Desktop.</p>
+<pre><code class="language-json">{
+  "mcpServers": {
+    "pulse": {
+      "command": "npx",
+      "args": ["-y", "-p", "pulse-trenches", "pulse-mcp"],
+      "env": { "PULSE_URL": "http://localhost:8787" }
+    }
+  }
+}</code></pre>
+
+<h3 id="claude-code">Claude Code<a class="anchor" href="#claude-code" aria-label="Link to this section">#</a></h3>
+<p>Add it from the command line, or commit a <code>.mcp.json</code> with the same <code>mcpServers</code> block as above.</p>
+<pre><code class="language-bash">claude mcp add pulse --env PULSE_URL=http://localhost:8787 -- npx -y -p pulse-trenches pulse-mcp</code></pre>
+
+<h3 id="cursor">Cursor<a class="anchor" href="#cursor" aria-label="Link to this section">#</a></h3>
+<p>Put the block in <code>~/.cursor/mcp.json</code> for all projects, or <code>.cursor/mcp.json</code> for one project.</p>
+<pre><code class="language-json">{
+  "mcpServers": {
+    "pulse": {
+      "command": "npx",
+      "args": ["-y", "-p", "pulse-trenches", "pulse-mcp"],
+      "env": { "PULSE_URL": "http://localhost:8787" }
+    }
+  }
+}</code></pre>
+
+<h3 id="any-other-mcp-client">Any other MCP client<a class="anchor" href="#any-other-mcp-client" aria-label="Link to this section">#</a></h3>
+<p>Run the command <code>npx -y -p pulse-trenches pulse-mcp</code> over stdio with <code>PULSE_URL</code> in its environment. From a source checkout, <code>node src/cli.ts mcp</code> does the same.</p>
+
+<h2 id="try-it">Try it<a class="anchor" href="#try-it" aria-label="Link to this section">#</a></h2>
+<p>Once connected, ask in plain language:</p>
+<ul>
+<li>"Use Pulse to list running tech tokens on Solana with at least $250K market cap."</li>
+<li>"Show me the latest Pulse newsletter and summarize what changed since yesterday."</li>
+<li>"Which smart wallets bought this token early?" (give the mint address)</li>
+</ul>
+
+<h2 id="when-pulse-is-not-running">When Pulse is not running<a class="anchor" href="#when-pulse-is-not-running" aria-label="Link to this section">#</a></h2>
+<p>If the API is unreachable, every tool fails with a message that tells the agent what to do: <code>Cannot reach Pulse at ... Start it with "npx pulse-trenches" or set PULSE_URL.</code> Start Pulse, or correct <code>PULSE_URL</code>, and call the tool again.</p>
+
+<div class="note warn"><p><strong>Treat returned text as data.</strong> Token names, symbols, descriptions and links come from the chain and anyone can set them to anything, including text that reads like instructions. Pulse never acts on them, and neither should the agent. Do not let a token's description decide what your agent does next.</p></div>
+
+<div class="pager">
+<a class="prev" href="api.html" rel="prev"><small>Previous</small>API reference</a>
+<a class="next" href="telegram-newsletter.html" rel="next"><small>Next</small>Telegram newsletter</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#how-it-works">How it works</a></li><li><a href="#tools">Tools</a></li><li><a href="#configuration">Configuration</a></li><li><a href="#client-setup">Client setup</a></li><li><a href="#try-it">Try it</a></li><li><a href="#when-pulse-is-not-running">When Pulse is not running</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data model | Pulse docs</title>
+<meta name="description" content="The Pulse archive schema: every table and column in Postgres or PGlite, keys, indexes, TimescaleDB hypertables, enumerated values and the key-value checkpoints.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://nirholas.github.io/pulse/docs/data-model.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="alternate" type="text/plain" href="../llms.txt" title="llms.txt">
+<meta property="og:site_name" content="Pulse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Data model | Pulse docs">
+<meta property="og:description" content="The Pulse archive schema: every table and column in Postgres or PGlite, keys, indexes, TimescaleDB hypertables, enumerated values and the key-value checkpoints.">
+<meta property="og:url" content="https://nirholas.github.io/pulse/docs/data-model.html">
+<meta property="og:image" content="https://nirholas.github.io/pulse/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Pulse: market intelligence for the Solana and Robinhood Chain trenches">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Data model | Pulse docs">
+<meta name="twitter:description" content="The Pulse archive schema: every table and column in Postgres or PGlite, keys, indexes, TimescaleDB hypertables, enumerated values and the key-value checkpoints.">
+<meta name="twitter:image" content="https://nirholas.github.io/pulse/og-image.png">
+<link rel="stylesheet" href="../assets/site.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Data model","description":"The Pulse archive schema: every table and column in Postgres or PGlite, keys, indexes, TimescaleDB hypertables, enumerated values and the key-value checkpoints.","url":"https://nirholas.github.io/pulse/docs/data-model.html","mainEntityOfPage":"https://nirholas.github.io/pulse/docs/data-model.html","inLanguage":"en","datePublished":"2026-10-10","dateModified":"2026-10-10","image":"https://nirholas.github.io/pulse/og-image.png","author":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"publisher":{"@type":"Person","name":"nirholas","url":"https://github.com/nirholas"},"isPartOf":{"@type":"WebSite","name":"Pulse","url":"https://nirholas.github.io/pulse/"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Pulse","item":"https://nirholas.github.io/pulse/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nirholas.github.io/pulse/docs/getting-started.html"},{"@type":"ListItem","position":3,"name":"Data model","item":"https://nirholas.github.io/pulse/docs/data-model.html"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap">
+<a class="brand" href="../index.html" aria-label="Pulse home"><svg class="" width="26" height="26" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a>
+<nav class="site-nav" aria-label="Primary">
+<a href="../docs/getting-started.html" aria-current="page">Docs</a>
+<a href="../docs/api.html">API</a>
+<a href="../docs/mcp.html">MCP</a>
+<a class="gh" href="https://github.com/nirholas/pulse" rel="noopener">GitHub</a>
+</nav>
+</div>
+</header>
+<div class="wrap doc-layout has-toc">
+<aside class="doc-nav" aria-label="Documentation">
+<details>
+<summary>Documentation menu</summary>
+<nav aria-label="Docs"><h2>Guide</h2><ul><li><a href="getting-started.html">Getting started</a></li><li><a href="configuration.html">Configuration</a></li><li><a href="how-it-works.html">How it works</a></li></ul><h2>Reference</h2><ul><li><a href="data-model.html" aria-current="page">Data model</a></li><li><a href="api.html">API reference</a></li></ul><h2>Integrate</h2><ul><li><a href="mcp.html">MCP server</a></li><li><a href="telegram-newsletter.html">Telegram newsletter</a></li></ul><h2>Operate</h2><ul><li><a href="deployment.html">Deployment</a></li><li><a href="faq.html">FAQ</a></li></ul></nav>
+</details>
+</aside>
+<main id="main" class="doc">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../index.html">Pulse</a></li><li><a href="getting-started.html">Docs</a></li><li aria-current="page">Data model</li></ol></nav>
+<h1>Data model</h1>
+<p class="lead">Everything is keyed by chain and address, so Solana and Robinhood Chain share one model and any chain added later fits without a schema change. The tables below are generated from the migration file.</p>
+<h2 id="overview">Overview<a class="anchor" href="#overview" aria-label="Link to this section">#</a></h2>
+<p>The archive is plain Postgres. The same SQL runs on the embedded PGlite engine and on a Postgres server. Migrations live in <code>src/db/migrations</code> as numbered files, run automatically at startup in name order, and are recorded once each in <code>schema_migrations</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Table</th><th>Grain</th><th>Primary key</th><th>Written by</th></tr></thead>
+<tbody>
+<tr><td><a href="#tokens"><code>tokens</code></a></td><td>One row per token, latest state and lifecycle</td><td><code>chain, address</code></td><td>Collector, firehose, status and classification passes</td></tr>
+<tr><td><a href="#token_snapshots"><code>token_snapshots</code></a></td><td>Market state per token per cycle</td><td><code>chain, address, ts</code></td><td>Collector</td></tr>
+<tr><td><a href="#list_appearances"><code>list_appearances</code></a></td><td>A token on a discovery list at a rank</td><td><code>chain, list, address, ts</code></td><td>Collector</td></tr>
+<tr><td><a href="#pairs"><code>pairs</code></a></td><td>DEX pools per token</td><td><code>chain, address</code></td><td>Collector</td></tr>
+<tr><td><a href="#launch_events"><code>launch_events</code></a></td><td>Launch, graduation and pool-creation events</td><td><code>chain, kind, token</code></td><td>Firehose, Robinhood Chain walker</td></tr>
+<tr><td><a href="#trades"><code>trades</code></a></td><td>Selected individual trades</td><td><code>chain, tx, token, wallet, side, ts</code></td><td>Firehose</td></tr>
+<tr><td><a href="#wallets"><code>wallets</code></a></td><td>Labelled wallets</td><td><code>chain, address</code></td><td>Label import, wallet promotion</td></tr>
+<tr><td><a href="#wallet_positions"><code>wallet_positions</code></a></td><td>Running per-wallet, per-token position</td><td><code>chain, wallet, token</code></td><td>Firehose</td></tr>
+<tr><td><a href="#wallet_scores"><code>wallet_scores</code></a></td><td>Rolling wallet performance</td><td><code>chain, wallet</code></td><td>Hourly scoring</td></tr>
+<tr><td><a href="#market_snapshots"><code>market_snapshots</code></a></td><td>Chain-wide totals per cycle</td><td><code>chain, ts</code></td><td>Collector</td></tr>
+<tr><td><a href="#daily_reports"><code>daily_reports</code></a></td><td>One newsletter issue per day</td><td><code>day</code></td><td>Newsletter job</td></tr>
+<tr><td><a href="#kv"><code>kv</code></a></td><td>Cursors and checkpoints</td><td><code>key</code></td><td>Collector</td></tr>
+</tbody></table></div>
+<p><code>chain</code> is <code>solana</code> or <code>robinhood</code>. Money columns are in USD unless the name says <code>quote</code> (SOL on Solana). Time columns are <code>timestamptz</code>.</p>
+
+<h2 id="tokens">tokens<a class="anchor" href="#tokens" aria-label="Link to this section">#</a></h2>
+<p>One row per token ever seen: identity, self-published metadata, latest market state, all-time highs and lifecycle. Updated in place every cycle. This is the table most queries start from.</p>
+<p>Primary key: <code>chain, address</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td><code>text</code></td><td><code>solana</code> or <code>robinhood</code>.</td></tr>
+<tr><td><code>address</code></td><td><code>text</code></td><td>Mint address on Solana, contract address on Robinhood Chain.</td></tr>
+<tr><td><code>symbol</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>name</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>decimals</code></td><td><code>int</code></td><td>Token decimals.</td></tr>
+<tr><td><code>image</code></td><td><code>text</code></td><td>Logo URL.</td></tr>
+<tr><td><code>description</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>website</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>twitter</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>telegram</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>launchpad</code></td><td><code>text</code></td><td>Where it launched: <code>pump</code>, <code>pumpswap</code>, <code>pons</code>, <code>noxa</code>, <code>odyssey</code>, or null.</td></tr>
+<tr><td><code>creator</code></td><td><code>text</code></td><td>Deploying wallet, where known.</td></tr>
+<tr><td><code>created_at</code></td><td><code>timestamptz</code></td><td>On-chain creation time, where known.</td></tr>
+<tr><td><code>first_seen</code></td><td><code>timestamptz</code></td><td>First time Pulse observed the token.</td></tr>
+<tr><td><code>last_seen</code></td><td><code>timestamptz</code></td><td>Last time Pulse observed it.</td></tr>
+<tr><td><code>last_snapshot_at</code></td><td><code>timestamptz</code></td><td>Time of its newest snapshot.</td></tr>
+<tr><td><code>category</code></td><td><code>text</code></td><td>Sector chosen by classification.</td></tr>
+<tr><td><code>categories</code></td><td><code>text[]</code></td><td>Every category the text matched.</td></tr>
+<tr><td><code>tech_score</code></td><td><code>real</code></td><td>0 to 1. Higher reads as technology, lower as meme.</td></tr>
+<tr><td><code>classified_at</code></td><td><code>timestamptz</code></td><td>When it was last classified.</td></tr>
+<tr><td><code>tags</code></td><td><code>text[]</code></td><td>Provider tags such as <code>stablecoin</code>, <code>lst</code>, <code>wrapped</code>.</td></tr>
+<tr><td><code>verified</code></td><td><code>boolean</code></td><td>Marked verified by a provider.</td></tr>
+<tr><td><code>last_price</code></td><td><code>double precision</code></td><td>Latest price in USD.</td></tr>
+<tr><td><code>last_mcap</code></td><td><code>double precision</code></td><td>Latest market cap in USD.</td></tr>
+<tr><td><code>last_liquidity</code></td><td><code>double precision</code></td><td>Latest liquidity in USD.</td></tr>
+<tr><td><code>last_volume_24h</code></td><td><code>double precision</code></td><td>Latest 24h volume in USD.</td></tr>
+<tr><td><code>last_holders</code></td><td><code>int</code></td><td>Latest holder count.</td></tr>
+<tr><td><code>last_change_24h</code></td><td><code>real</code></td><td>Latest 24h price change, percent.</td></tr>
+<tr><td><code>first_mcap</code></td><td><code>double precision</code></td><td>Market cap at the first snapshot.</td></tr>
+<tr><td><code>ath_mcap</code></td><td><code>double precision</code></td><td>Highest market cap observed in snapshots.</td></tr>
+<tr><td><code>ath_at</code></td><td><code>timestamptz</code></td><td>When that high was observed.</td></tr>
+<tr><td><code>peak_volume_24h</code></td><td><code>double precision</code></td><td>Highest 24h volume observed.</td></tr>
+<tr><td><code>status</code></td><td><code>text</code></td><td>Lifecycle status. See enumerated values below.</td></tr>
+<tr><td><code>status_changed_at</code></td><td><code>timestamptz</code></td><td>Last status transition.</td></tr>
+<tr><td><code>graduated_at</code></td><td><code>timestamptz</code></td><td>When it left its bonding curve for a DEX pool.</td></tr>
+<tr><td><code>died_at</code></td><td><code>timestamptz</code></td><td>When it became <code>dead</code>.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>tokens_status_idx</code> on (chain, status), <code>tokens_first_seen_idx</code> on (first_seen desc), <code>tokens_category_idx</code> on (category), <code>tokens_last_snapshot_idx</code> on (last_snapshot_at).</p>
+
+<h2 id="token_snapshots">token_snapshots<a class="anchor" href="#token_snapshots" aria-label="Link to this section">#</a></h2>
+<p>The market state of a token at one moment, written every cycle for each token observed. This is the history that statuses, charts and training data are built from.</p>
+<p>Primary key: <code>chain, address, ts</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ts</code></td><td><code>timestamptz</code></td><td>Snapshot time.</td></tr>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>address</code></td><td><code>text</code></td><td>Token address.</td></tr>
+<tr><td><code>price_usd</code></td><td><code>double precision</code></td><td>Price in USD.</td></tr>
+<tr><td><code>mcap</code></td><td><code>double precision</code></td><td>Market cap in USD.</td></tr>
+<tr><td><code>fdv</code></td><td><code>double precision</code></td><td>Fully diluted value in USD.</td></tr>
+<tr><td><code>liquidity</code></td><td><code>double precision</code></td><td>Liquidity in USD.</td></tr>
+<tr><td><code>vol_5m</code></td><td><code>double precision</code></td><td>USD volume, last 5 minutes.</td></tr>
+<tr><td><code>vol_1h</code></td><td><code>double precision</code></td><td>USD volume, last hour.</td></tr>
+<tr><td><code>vol_6h</code></td><td><code>double precision</code></td><td>USD volume, last 6 hours.</td></tr>
+<tr><td><code>vol_24h</code></td><td><code>double precision</code></td><td>USD volume, last 24 hours.</td></tr>
+<tr><td><code>buy_vol_24h</code></td><td><code>double precision</code></td><td>USD buy volume, 24h.</td></tr>
+<tr><td><code>sell_vol_24h</code></td><td><code>double precision</code></td><td>USD sell volume, 24h.</td></tr>
+<tr><td><code>organic_vol_24h</code></td><td><code>double precision</code></td><td>Volume a provider attributes to organic activity, 24h.</td></tr>
+<tr><td><code>buys_1h</code></td><td><code>int</code></td><td>Buy count, 1h.</td></tr>
+<tr><td><code>sells_1h</code></td><td><code>int</code></td><td>Sell count, 1h.</td></tr>
+<tr><td><code>buys_24h</code></td><td><code>int</code></td><td>Buy count, 24h.</td></tr>
+<tr><td><code>sells_24h</code></td><td><code>int</code></td><td>Sell count, 24h.</td></tr>
+<tr><td><code>traders_1h</code></td><td><code>int</code></td><td>Unique traders, 1h.</td></tr>
+<tr><td><code>traders_24h</code></td><td><code>int</code></td><td>Unique traders, 24h.</td></tr>
+<tr><td><code>net_buyers_24h</code></td><td><code>int</code></td><td>Net buyers, 24h.</td></tr>
+<tr><td><code>holders</code></td><td><code>int</code></td><td>Holder count.</td></tr>
+<tr><td><code>holder_change_24h</code></td><td><code>real</code></td><td>Holder count change over 24h.</td></tr>
+<tr><td><code>top_holders_pct</code></td><td><code>real</code></td><td>Share of supply held by the largest holders.</td></tr>
+<tr><td><code>organic_score</code></td><td><code>real</code></td><td>Provider score of how organic the activity looks.</td></tr>
+<tr><td><code>chg_5m</code></td><td><code>real</code></td><td>Price change, 5m, percent.</td></tr>
+<tr><td><code>chg_1h</code></td><td><code>real</code></td><td>Price change, 1h, percent.</td></tr>
+<tr><td><code>chg_6h</code></td><td><code>real</code></td><td>Price change, 6h, percent.</td></tr>
+<tr><td><code>chg_24h</code></td><td><code>real</code></td><td>Price change, 24h, percent.</td></tr>
+<tr><td><code>source</code></td><td><code>text</code></td><td>Providers that supplied the row, joined by <code>+</code>.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>token_snapshots_ts_idx</code> on (ts desc).</p>
+
+<h2 id="list_appearances">list_appearances<a class="anchor" href="#list_appearances" aria-label="Link to this section">#</a></h2>
+<p>Each time a token showed up on a discovery list (Jupiter trending, DexScreener boosts, GeckoTerminal new pools and so on) and at what rank. Persistence on lists feeds the "Staying power" section.</p>
+<p>Primary key: <code>chain, list, address, ts</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ts</code></td><td><code>timestamptz</code></td><td>When the list was read.</td></tr>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>list</code></td><td><code>text</code></td><td>List name, for example <code>jup:toptrending:1h</code>.</td></tr>
+<tr><td><code>rank</code></td><td><code>int</code></td><td>Position on the list, starting at 1.</td></tr>
+<tr><td><code>address</code></td><td><code>text</code></td><td>Token address.</td></tr>
+</tbody></table></div>
+
+
+<h2 id="pairs">pairs<a class="anchor" href="#pairs" aria-label="Link to this section">#</a></h2>
+<p>DEX pools that trade a token. The newest pool is the one used for candles.</p>
+<p>Primary key: <code>chain, address</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>address</code></td><td><code>text</code></td><td>Pool address.</td></tr>
+<tr><td><code>token_address</code></td><td><code>text</code></td><td>Token the pool trades.</td></tr>
+<tr><td><code>dex</code></td><td><code>text</code></td><td>DEX name.</td></tr>
+<tr><td><code>quote_symbol</code></td><td><code>text</code></td><td>Quote asset symbol.</td></tr>
+<tr><td><code>labels</code></td><td><code>text[]</code></td><td>Provider pool labels.</td></tr>
+<tr><td><code>created_at</code></td><td><code>timestamptz</code></td><td>Pool creation time.</td></tr>
+<tr><td><code>url</code></td><td><code>text</code></td><td>Provider page for the pool.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>pairs_token_idx</code> on (chain, token_address).</p>
+
+<h2 id="launch_events">launch_events<a class="anchor" href="#launch_events" aria-label="Link to this section">#</a></h2>
+<p>Launches, graduations and pool creations from the Solana firehose and the Robinhood Chain factory walker.</p>
+<p>Primary key: <code>chain, kind, token</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ts</code></td><td><code>timestamptz</code></td><td>Event time.</td></tr>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>kind</code></td><td><code>text</code></td><td><code>launch</code>, <code>graduation</code> or <code>pool</code>.</td></tr>
+<tr><td><code>token</code></td><td><code>text</code></td><td>Token address.</td></tr>
+<tr><td><code>launchpad</code></td><td><code>text</code></td><td>Launchpad.</td></tr>
+<tr><td><code>actor</code></td><td><code>text</code></td><td>Wallet that triggered the event.</td></tr>
+<tr><td><code>tx</code></td><td><code>text</code></td><td>Transaction id.</td></tr>
+<tr><td><code>name</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>symbol</code></td><td><code>text</code></td><td>Self-published text. Untrusted.</td></tr>
+<tr><td><code>data</code></td><td><code>jsonb</code></td><td>Extra event details as JSON.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>launch_events_ts_idx</code> on (ts desc).</p>
+
+<h2 id="trades">trades<a class="anchor" href="#trades" aria-label="Link to this section">#</a></h2>
+<p>Selected individual trades, not every trade. See Trade persistence in How it works for exactly which are kept.</p>
+<p>Primary key: <code>chain, tx, token, wallet, side, ts</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ts</code></td><td><code>timestamptz</code></td><td>Trade time.</td></tr>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>tx</code></td><td><code>text</code></td><td>Transaction id.</td></tr>
+<tr><td><code>token</code></td><td><code>text</code></td><td>Token address.</td></tr>
+<tr><td><code>wallet</code></td><td><code>text</code></td><td>Trader.</td></tr>
+<tr><td><code>side</code></td><td><code>text</code></td><td><code>buy</code> or <code>sell</code>.</td></tr>
+<tr><td><code>quote_amount</code></td><td><code>double precision</code></td><td>Amount in the quote asset (SOL on Solana).</td></tr>
+<tr><td><code>token_amount</code></td><td><code>double precision</code></td><td>Tokens bought or sold.</td></tr>
+<tr><td><code>price_quote</code></td><td><code>double precision</code></td><td>Price in the quote asset.</td></tr>
+<tr><td><code>mcap_usd</code></td><td><code>double precision</code></td><td>Market cap in USD at the time of the trade.</td></tr>
+<tr><td><code>venue</code></td><td><code>text</code></td><td><code>pump</code> (bonding curve) or <code>pumpswap</code>.</td></tr>
+<tr><td><code>reason</code></td><td><code>text</code></td><td>Why it was kept. See enumerated values below.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>trades_wallet_idx</code> on (chain, wallet, ts desc), <code>trades_token_idx</code> on (chain, token, ts desc).</p>
+
+<h2 id="wallets">wallets<a class="anchor" href="#wallets" aria-label="Link to this section">#</a></h2>
+<p>Labelled wallets: imported KOL and smart-money labels, plus smart wallets Pulse discovered itself.</p>
+<p>Primary key: <code>chain, address</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>address</code></td><td><code>text</code></td><td>Wallet address.</td></tr>
+<tr><td><code>label</code></td><td><code>text</code></td><td>Display name from the source.</td></tr>
+<tr><td><code>kind</code></td><td><code>text</code></td><td><code>kol</code> or <code>smart</code>.</td></tr>
+<tr><td><code>source</code></td><td><code>text</code></td><td>Where the label came from, or <code>pulse:discovered</code>.</td></tr>
+<tr><td><code>twitter</code></td><td><code>text</code></td><td>Public profile link, if the source lists one.</td></tr>
+<tr><td><code>telegram</code></td><td><code>text</code></td><td>Public Telegram link, if the source lists one.</td></tr>
+<tr><td><code>first_seen</code></td><td><code>timestamptz</code></td><td>First imported.</td></tr>
+<tr><td><code>updated_at</code></td><td><code>timestamptz</code></td><td>Last refreshed.</td></tr>
+<tr><td><code>meta</code></td><td><code>jsonb</code></td><td>Source-specific details as JSON.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>wallets_kind_idx</code> on (kind).</p>
+
+<h2 id="wallet_positions">wallet_positions<a class="anchor" href="#wallet_positions" aria-label="Link to this section">#</a></h2>
+<p>Running totals per wallet and token, updated whenever a recorded trade arrives. Wallet scoring reads this table.</p>
+<p>Primary key: <code>chain, wallet, token</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>wallet</code></td><td><code>text</code></td><td>Wallet address.</td></tr>
+<tr><td><code>token</code></td><td><code>text</code></td><td>Token address.</td></tr>
+<tr><td><code>first_buy_at</code></td><td><code>timestamptz</code></td><td>First recorded buy.</td></tr>
+<tr><td><code>first_buy_mcap_usd</code></td><td><code>double precision</code></td><td>Market cap at that buy.</td></tr>
+<tr><td><code>last_trade_at</code></td><td><code>timestamptz</code></td><td>Most recent recorded trade.</td></tr>
+<tr><td><code>buys</code></td><td><code>int</code></td><td>Recorded buy count.</td></tr>
+<tr><td><code>sells</code></td><td><code>int</code></td><td>Recorded sell count.</td></tr>
+<tr><td><code>bought_quote</code></td><td><code>double precision</code></td><td>Total bought, in the quote asset.</td></tr>
+<tr><td><code>sold_quote</code></td><td><code>double precision</code></td><td>Total sold, in the quote asset.</td></tr>
+<tr><td><code>bought_tokens</code></td><td><code>double precision</code></td><td>Tokens bought.</td></tr>
+<tr><td><code>sold_tokens</code></td><td><code>double precision</code></td><td>Tokens sold.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>wallet_positions_token_idx</code> on (chain, token), <code>wallet_positions_recent_idx</code> on (last_trade_at desc).</p>
+
+<h2 id="wallet_scores">wallet_scores<a class="anchor" href="#wallet_scores" aria-label="Link to this section">#</a></h2>
+<p>Rolling wallet performance recomputed hourly over a 30 day window.</p>
+<p>Primary key: <code>chain, wallet</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>wallet</code></td><td><code>text</code></td><td>Wallet address.</td></tr>
+<tr><td><code>computed_at</code></td><td><code>timestamptz</code></td><td>When it was scored.</td></tr>
+<tr><td><code>window_days</code></td><td><code>int</code></td><td>Scoring window, 30.</td></tr>
+<tr><td><code>tokens_traded</code></td><td><code>int</code></td><td>Tokens with a position in the window.</td></tr>
+<tr><td><code>wins</code></td><td><code>int</code></td><td>Positions that finished in profit.</td></tr>
+<tr><td><code>win_rate</code></td><td><code>real</code></td><td>Wins divided by tokens traded.</td></tr>
+<tr><td><code>invested_quote</code></td><td><code>double precision</code></td><td>SOL bought.</td></tr>
+<tr><td><code>realized_quote</code></td><td><code>double precision</code></td><td>SOL sold.</td></tr>
+<tr><td><code>unrealized_quote</code></td><td><code>double precision</code></td><td>SOL value of tokens still held.</td></tr>
+<tr><td><code>pnl_quote</code></td><td><code>double precision</code></td><td>Realized plus unrealized, in SOL.</td></tr>
+<tr><td><code>pnl_usd</code></td><td><code>double precision</code></td><td>Profit converted to USD.</td></tr>
+<tr><td><code>early_hits</code></td><td><code>int</code></td><td>Early buys of tokens that reached a $500K+ high.</td></tr>
+<tr><td><code>best_multiple</code></td><td><code>real</code></td><td>Best ATH-to-entry market cap multiple.</td></tr>
+<tr><td><code>score</code></td><td><code>real</code></td><td>The Pulse score. See Wallet scoring.</td></tr>
+</tbody></table></div>
+<p>Indexes: <code>wallet_scores_score_idx</code> on (score desc).</p>
+
+<h2 id="market_snapshots">market_snapshots<a class="anchor" href="#market_snapshots" aria-label="Link to this section">#</a></h2>
+<p>Chain-wide totals written every cycle: tracked tokens, market cap, volume and launch counts.</p>
+<p>Primary key: <code>chain, ts</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>ts</code></td><td><code>timestamptz</code></td><td>Snapshot time.</td></tr>
+<tr><td><code>chain</code></td><td><code>text</code></td><td>Chain.</td></tr>
+<tr><td><code>native_usd</code></td><td><code>double precision</code></td><td>SOL or ETH price in USD.</td></tr>
+<tr><td><code>tracked_tokens</code></td><td><code>int</code></td><td>Tokens counted in the totals.</td></tr>
+<tr><td><code>total_mcap</code></td><td><code>double precision</code></td><td>Summed market cap, USD.</td></tr>
+<tr><td><code>total_volume_24h</code></td><td><code>double precision</code></td><td>Summed 24h volume, USD.</td></tr>
+<tr><td><code>launches_1h</code></td><td><code>int</code></td><td>Launches in the last hour.</td></tr>
+<tr><td><code>graduations_1h</code></td><td><code>int</code></td><td>Graduations in the last hour.</td></tr>
+<tr><td><code>stream_trades_1h</code></td><td><code>int</code></td><td>Trades seen by the firehose in the last hour (Solana, null if off).</td></tr>
+<tr><td><code>stream_volume_1h</code></td><td><code>double precision</code></td><td>SOL volume seen by the firehose in the last hour.</td></tr>
+<tr><td><code>data</code></td><td><code>jsonb</code></td><td>Extra firehose counters as JSON.</td></tr>
+</tbody></table></div>
+
+
+<h2 id="daily_reports">daily_reports<a class="anchor" href="#daily_reports" aria-label="Link to this section">#</a></h2>
+<p>One stored newsletter issue per day, in structured, Markdown and HTML form.</p>
+<p>Primary key: <code>day</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>day</code></td><td><code>date</code></td><td>Issue date.</td></tr>
+<tr><td><code>generated_at</code></td><td><code>timestamptz</code></td><td>When it was generated.</td></tr>
+<tr><td><code>data</code></td><td><code>jsonb</code></td><td>Structured sections as JSON.</td></tr>
+<tr><td><code>markdown</code></td><td><code>text</code></td><td>Markdown rendering.</td></tr>
+<tr><td><code>html</code></td><td><code>text</code></td><td>HTML rendering.</td></tr>
+<tr><td><code>telegram</code></td><td><code>jsonb</code></td><td>Send receipt, or null if not sent.</td></tr>
+</tbody></table></div>
+
+
+<h2 id="kv">kv<a class="anchor" href="#kv" aria-label="Link to this section">#</a></h2>
+<p>Small cursors and job checkpoints.</p>
+<p>Primary key: <code>key</code>.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td><code>key</code></td><td><code>text</code></td><td>Checkpoint name.</td></tr>
+<tr><td><code>value</code></td><td><code>jsonb</code></td><td>JSON value.</td></tr>
+<tr><td><code>updated_at</code></td><td><code>timestamptz</code></td><td>Last write.</td></tr>
+</tbody></table></div>
+
+
+<h2 id="enumerated-values">Enumerated values<a class="anchor" href="#enumerated-values" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Column</th><th>Values</th></tr></thead>
+<tbody>
+<tr><td><code>tokens.status</code></td><td><code>new</code>, <code>running</code>, <code>graduated</code>, <code>dying</code>, <code>dead</code>. Rules in <a href="how-it-works.html#token-lifecycle">How it works</a>.</td></tr>
+<tr><td><code>tokens.category</code></td><td><code>ai</code>, <code>agents</code>, <code>defi</code>, <code>infra</code>, <code>depin</code>, <code>data</code>, <code>gaming</code>, <code>social</code>, <code>payments</code>, <code>rwa</code>, <code>privacy</code>, <code>launchpad</code>, <code>tools</code>, <code>meme</code>, <code>animal</code>, <code>culture</code>, <code>politics</code>, <code>celebrity</code>, <code>unclassified</code></td></tr>
+<tr><td><code>tokens.launchpad</code>, <code>launch_events.launchpad</code></td><td><code>pump</code> and <code>pumpswap</code> on Solana. <code>pons</code>, <code>noxa</code> and <code>odyssey</code> on Robinhood Chain.</td></tr>
+<tr><td><code>launch_events.kind</code></td><td><code>launch</code>, <code>graduation</code>, <code>pool</code></td></tr>
+<tr><td><code>trades.side</code></td><td><code>buy</code>, <code>sell</code></td></tr>
+<tr><td><code>trades.reason</code></td><td><code>wallet:kol</code>, <code>wallet:smart</code>, <code>whale</code>, <code>early:graduated</code>, <code>early:runner</code>. See <a href="how-it-works.html#trade-persistence">Trade persistence</a>.</td></tr>
+<tr><td><code>trades.venue</code></td><td><code>pump</code> (bonding curve), <code>pumpswap</code></td></tr>
+<tr><td><code>wallets.kind</code></td><td><code>kol</code>, <code>smart</code>. Wallets Pulse discovers itself are <code>smart</code> with source <code>pulse:discovered</code>.</td></tr>
+<tr><td><code>list_appearances.list</code></td><td><code>jup:recent</code>, <code>jup:&lt;list&gt;:&lt;window&gt;</code> (lists <code>toptrending</code>, <code>toptraded</code>, <code>toporganicscore</code>; windows <code>5m</code>, <code>1h</code>, <code>6h</code>, <code>24h</code>), <code>dex:boosts-top</code>, <code>dex:boosts-latest</code>, <code>dex:profiles</code>, <code>dex:takeovers</code>, plus the pump.fun and GeckoTerminal lists.</td></tr>
+<tr><td><code>token_snapshots.source</code></td><td>The provider that supplied the row. When several providers describe the same token in one cycle they are merged, later providers filling gaps, and the names are joined with <code>+</code>.</td></tr>
+</tbody></table></div>
+
+<h2 id="timescaledb-hypertables">TimescaleDB hypertables<a class="anchor" href="#timescaledb-hypertables" aria-label="Link to this section">#</a></h2>
+<p>On a Postgres server where the <code>timescaledb</code> extension is available (the bundled Docker Compose image has it), startup converts four append-only tables into hypertables chunked by day on <code>ts</code>, with compression segmented by <code>chain</code>:</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Table</th><th>Compressed after</th></tr></thead>
+<tbody>
+<tr><td><code>token_snapshots</code></td><td>7 days</td></tr>
+<tr><td><code>trades</code></td><td>7 days</td></tr>
+<tr><td><code>list_appearances</code></td><td>7 days</td></tr>
+<tr><td><code>market_snapshots</code></td><td>30 days</td></tr>
+</tbody></table></div>
+<p>Plain Postgres and PGlite skip this step. Every query behaves the same either way.</p>
+
+<h2 id="checkpoints-in-kv">Checkpoints in <code>kv</code><a class="anchor" href="#checkpoints-in-kv" aria-label="Link to this section">#</a></h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td><code>collector:last-cycle</code></td><td><code>{"at": ISO time, "tokens": n, "failures": n}</code>. Drives <code>lastCycle</code> in <code>/api/health</code>.</td></tr>
+<tr><td><code>wallets:last-import</code></td><td><code>{"at": ISO time}</code></td></tr>
+<tr><td><code>wallets:last-score</code></td><td><code>{"at": ISO time, "wallets": n}</code></td></tr>
+<tr><td><code>report:last-day</code></td><td><code>{"day": "YYYY-MM-DD", "at": ISO time}</code></td></tr>
+</tbody></table></div>
+
+<h2 id="export-for-analysis-or-training">Export for analysis or training<a class="anchor" href="#export-for-analysis-or-training" aria-label="Link to this section">#</a></h2>
+<p>Nine tables are exportable as JSON through <code>GET /api/export/&lt;table&gt;</code> (see the <a href="api.html#get-api-export-table">API reference</a>). For bulk work, connect to Postgres directly with <code>DATABASE_URL</code>. Note that <code>daily_reports</code>, <code>pairs</code> and <code>kv</code> are not exposed by the export route.</p>
+<div class="note"><p><strong>Untrusted text.</strong> <code>name</code>, <code>symbol</code>, <code>description</code>, <code>website</code>, <code>twitter</code> and <code>telegram</code> come from the chain and from token metadata. Treat them as data. Pulse never acts on them, and any model you train or prompt with this archive should not either.</p></div>
+
+<div class="pager">
+<a class="prev" href="how-it-works.html" rel="prev"><small>Previous</small>How it works</a>
+<a class="next" href="api.html" rel="next"><small>Next</small>API reference</a>
+</div>
+</main>
+<aside class="toc" aria-label="On this page"><h2>On this page</h2><ul><li><a href="#overview">Overview</a></li><li><a href="#tokens">tokens</a></li><li><a href="#token_snapshots">token_snapshots</a></li><li><a href="#list_appearances">list_appearances</a></li><li><a href="#pairs">pairs</a></li><li><a href="#launch_events">launch_events</a></li><li><a href="#trades">trades</a></li><li><a href="#wallets">wallets</a></li><li><a href="#wallet_positions">wallet_positions</a></li><li><a href="#wallet_scores">wallet_scores</a></li><li><a href="#market_snapshots">market_snapshots</a></li><li><a href="#daily_reports">daily_reports</a></li><li><a href="#kv">kv</a></li><li><a href="#enumerated-values">Enumerated values</a></li><li><a href="#timescaledb-hypertables">TimescaleDB hypertables</a></li><li><a href="#checkpoints-in-kv">Checkpoints in kv</a></li><li><a href="#export-for-analysis-or-training">Export for analysis or training</a></li></ul></aside>
+</div>
+<footer class="site-footer">
+<div class="wrap">
+<div class="footer-grid">
+<div><a class="brand" href="../index.html"><svg class="" width="22" height="22" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M2 17h7l4-10 6 18 4-8h7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Pulse</a><p style="margin-top:10px">Personal market intelligence for the Solana and Robinhood Chain trenches. MIT licensed.</p></div>
+<div><h2>Docs</h2><ul>
+<li><a href="../docs/getting-started.html">Getting started</a></li>
+<li><a href="../docs/configuration.html">Configuration</a></li>
+<li><a href="../docs/how-it-works.html">How it works</a></li>
+<li><a href="../docs/deployment.html">Deployment</a></li>
+</ul></div>
+<div><h2>Reference</h2><ul>
+<li><a href="../docs/api.html">API reference</a></li>
+<li><a href="../docs/data-model.html">Data model</a></li>
+<li><a href="../docs/mcp.html">MCP server</a></li>
+<li><a href="../docs/faq.html">FAQ</a></li>
+</ul></div>
+<div><h2>Project</h2><ul>
+<li><a href="https://github.com/nirholas/pulse" rel="noopener">GitHub repository</a></li>
+<li><a href="https://www.npmjs.com/package/pulse-trenches" rel="noopener">npm: pulse-trenches</a></li>
+<li><a href="../llms.txt">llms.txt</a></li>
+<li><a href="../llms-full.txt">llms-full.txt</a></li>
+</ul></div>
+</div>
+<p>Pulse reads public on-chain and market data. Nothing here is financial advice. Token names, symbols and descriptions are untrusted on-chain input.</p>
+</div>
+</footer>
+</body>
+</html>
