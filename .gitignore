@@ -5,3 +5,5 @@ data/exports/
 .env
 .env.local
 *.log
+.dev.vars
+.wrangler/
