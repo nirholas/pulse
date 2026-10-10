@@ -70,7 +70,11 @@
     "build": "vite build && node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "build:worker": "node scripts/build-worker.mjs",
+    "cf:deploy": "vite build && node scripts/build-worker.mjs && wrangler deploy -c cloudflare/wrangler.jsonc",
+    "cf:dev": "node scripts/build-worker.mjs && wrangler dev -c cloudflare/wrangler.jsonc",
+    "typecheck:worker": "tsc -p cloudflare --noEmit"
   },
   "publishConfig": {
     "access": "public",
@@ -86,6 +90,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261010.1",
     "@types/node": "^26.6.4",
     "@types/pg": "^8.23.1",
     "echarts": "^6.1.0",
@@ -93,6 +98,7 @@
     "lightweight-charts": "^5.2.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "wrangler": "^4.149.0"
   }
 }

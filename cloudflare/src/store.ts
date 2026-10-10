@@ -1,0 +1,119 @@
+// D1 persistence for observations. Same contract as src/collector/store.ts:
+// merge every source's view of a token into one row, append a snapshot,
+// record which list surfaced it, keep its pools. Arrays are JSON text here.
+import { batch, insertMany, kvGet, kvSet, query, type Param } from './db.ts';
+import { ago } from './db.ts';
+import type { Chain, LaunchEvent, Observation } from '../../src/sources/types.ts';
+import { mergeObservations } from '../../src/collector/merge.ts';
+
+export { mergeObservations, kvGet, kvSet };
+
+const TOKEN_META_COLS = ['symbol', 'name', 'decimals', 'image', 'description', 'website', 'twitter', 'telegram', 'launchpad', 'creator', 'created_at', 'graduated_at', 'tags', 'verified'] as const;
+
+const SNAPSHOT_COLS = ['ts', 'chain', 'address', 'price_usd', 'mcap', 'fdv', 'liquidity', 'vol_5m', 'vol_1h', 'vol_6h', 'vol_24h', 'buy_vol_24h', 'sell_vol_24h', 'organic_vol_24h', 'buys_1h', 'sells_1h', 'buys_24h', 'sells_24h', 'traders_1h', 'traders_24h', 'net_buyers_24h', 'holders', 'holder_change_24h', 'top_holders_pct', 'organic_score', 'chg_5m', 'chg_1h', 'chg_6h', 'chg_24h', 'source'];
+
+const TOKEN_CONFLICT = `on conflict (chain, address) do update set
+      ${TOKEN_META_COLS.map((c) => (c === 'tags' ? `tags = case when excluded.tags <> '[]' then excluded.tags else tokens.tags end` : `${c} = coalesce(excluded.${c}, tokens.${c})`)).join(',\n      ')},
+      last_seen = excluded.last_seen,
+      last_price = coalesce(excluded.last_price, tokens.last_price),
+      last_mcap = coalesce(excluded.last_mcap, tokens.last_mcap),
+      last_liquidity = coalesce(excluded.last_liquidity, tokens.last_liquidity),
+      last_volume_24h = coalesce(excluded.last_volume_24h, tokens.last_volume_24h),
+      last_holders = coalesce(excluded.last_holders, tokens.last_holders),
+      last_change_24h = coalesce(excluded.last_change_24h, tokens.last_change_24h),
+      last_snapshot_at = coalesce(excluded.last_snapshot_at, tokens.last_snapshot_at),
+      first_mcap = coalesce(tokens.first_mcap, excluded.last_mcap),
+      ath_mcap = max(coalesce(tokens.ath_mcap, 0), coalesce(excluded.last_mcap, 0)),
+      ath_at = case when coalesce(excluded.last_mcap, 0) > coalesce(tokens.ath_mcap, 0) then excluded.last_seen else tokens.ath_at end,
+      peak_volume_24h = max(coalesce(tokens.peak_volume_24h, 0), coalesce(excluded.last_volume_24h, 0))`;
+
+export async function upsertTokens(observations: Observation[], ts: Date): Promise<number> {
+  const merged = mergeObservations(observations);
+  if (!merged.size) return 0;
+  const tokenRows: unknown[][] = [];
+  const snapRows: unknown[][] = [];
+  const listRows: unknown[][] = [];
+  const pairRows: unknown[][] = [];
+  for (const o of merged.values()) {
+    const m = o.meta;
+    const s = o.snap ?? {};
+    tokenRows.push([
+      m.chain, m.address, m.symbol ?? null, m.name ?? null, m.decimals ?? null, m.image ?? null, m.description ?? null, m.website ?? null, m.twitter ?? null, m.telegram ?? null,
+      m.launchpad ?? null, m.creator ?? null, m.createdAt ?? null, m.graduatedAt ?? null, m.tags ?? [], m.verified ?? null,
+      ts, s.priceUsd ?? null, s.mcap ?? null, s.liquidity ?? null, s.vol24h ?? null, s.holders ?? null, s.chg24h ?? null, o.snap ? ts : null,
+    ]);
+    if (o.snap) {
+      snapRows.push([
+        ts, m.chain, m.address, s.priceUsd ?? null, s.mcap ?? null, s.fdv ?? null, s.liquidity ?? null, s.vol5m ?? null, s.vol1h ?? null, s.vol6h ?? null, s.vol24h ?? null,
+        s.buyVol24h ?? null, s.sellVol24h ?? null, s.organicVol24h ?? null, s.buys1h ?? null, s.sells1h ?? null, s.buys24h ?? null, s.sells24h ?? null, s.traders1h ?? null, s.traders24h ?? null,
+        s.netBuyers24h ?? null, s.holders ?? null, s.holderChange24h ?? null, s.topHoldersPct ?? null, s.organicScore ?? null, s.chg5m ?? null, s.chg1h ?? null, s.chg6h ?? null, s.chg24h ?? null, o.source,
+      ]);
+    }
+    for (const l of (o as Observation & { lists: { name: string; rank: number }[] }).lists) listRows.push([ts, m.chain, l.name, l.rank, m.address]);
+    const seenPairs = new Set<string>();
+    for (const p of o.pairs ?? []) {
+      if (!p.address || seenPairs.has(p.address)) continue;
+      seenPairs.add(p.address);
+      pairRows.push([p.chain, p.address, p.tokenAddress, p.dex ?? null, p.quoteSymbol ?? null, p.labels ?? [], p.createdAt ?? null, p.url ?? null]);
+    }
+  }
+  await insertMany(
+    'tokens',
+    ['chain', 'address', ...TOKEN_META_COLS, 'last_seen', 'last_price', 'last_mcap', 'last_liquidity', 'last_volume_24h', 'last_holders', 'last_change_24h', 'last_snapshot_at'],
+    tokenRows,
+    TOKEN_CONFLICT,
+  );
+  await insertMany('token_snapshots', SNAPSHOT_COLS, snapRows, 'on conflict do nothing');
+  await insertMany('list_appearances', ['ts', 'chain', 'list', 'rank', 'address'], listRows, 'on conflict do nothing');
+  await insertMany(
+    'pairs',
+    ['chain', 'address', 'token_address', 'dex', 'quote_symbol', 'labels', 'created_at', 'url'],
+    pairRows,
+    'on conflict (chain, address) do update set dex = coalesce(excluded.dex, pairs.dex), quote_symbol = coalesce(excluded.quote_symbol, pairs.quote_symbol), labels = excluded.labels, created_at = coalesce(excluded.created_at, pairs.created_at), url = coalesce(excluded.url, pairs.url)',
+  );
+  return merged.size;
+}
+
+export async function recordLaunchEvents(events: LaunchEvent[]): Promise<void> {
+  if (!events.length) return;
+  await insertMany(
+    'launch_events',
+    ['ts', 'chain', 'kind', 'token', 'launchpad', 'actor', 'tx', 'name', 'symbol', 'data'],
+    events.map((e) => [e.ts, e.chain, e.kind, e.token, e.launchpad ?? null, e.actor ?? null, e.tx ?? null, e.name ?? null, e.symbol ?? null, e.data ?? {}]),
+    'on conflict do nothing',
+  );
+  const statements: [string, Param[]][] = [];
+  for (const e of events) {
+    if (e.kind === 'launch') {
+      statements.push([
+        `insert into tokens (chain, address, symbol, name, launchpad, creator, created_at, first_seen, last_seen, status, status_changed_at)
+         values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7, ?7, 'new', ?7)
+         on conflict (chain, address) do update set
+           symbol = coalesce(tokens.symbol, excluded.symbol), name = coalesce(tokens.name, excluded.name),
+           launchpad = coalesce(tokens.launchpad, excluded.launchpad), creator = coalesce(tokens.creator, excluded.creator),
+           created_at = coalesce(tokens.created_at, excluded.created_at)`,
+        [e.chain, e.token, e.symbol ?? null, e.name ?? null, e.launchpad ?? null, e.actor ?? null, e.ts],
+      ]);
+    } else if (e.kind === 'graduation') {
+      statements.push([
+        `insert into tokens (chain, address, launchpad, first_seen, last_seen, graduated_at, status, status_changed_at)
+         values (?1, ?2, ?3, ?4, ?4, ?4, 'graduated', ?4)
+         on conflict (chain, address) do update set graduated_at = coalesce(tokens.graduated_at, excluded.graduated_at),
+           status = case when tokens.status in ('new', 'curve') then 'graduated' else tokens.status end,
+           status_changed_at = case when tokens.status in ('new', 'curve') then excluded.graduated_at else tokens.status_changed_at end`,
+        [e.chain, e.token, e.launchpad ?? null, e.ts],
+      ]);
+    }
+  }
+  await batch(statements);
+}
+
+export async function tokensNeedingRefresh(chain: Chain, limit: number): Promise<string[]> {
+  const rows = await query<{ address: string }>(
+    `select address from tokens where chain = ? and status <> 'dead' and (last_snapshot_at is null or last_snapshot_at < ?)
+     order by coalesce(last_volume_24h, 0) desc, first_seen desc limit ?`,
+    [chain, ago(20 * 60_000), limit],
+  );
+  return rows.map((r) => r.address);
+}
+

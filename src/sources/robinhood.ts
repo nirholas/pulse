@@ -2,9 +2,9 @@
 // from the launchpad factories' logs over JSON-RPC, so a new coin is recorded
 // the block it appears, before any aggregator has indexed it. Market data for
 // those coins then comes from DexScreener (chainId "robinhood").
-import { request as httpsRequest } from 'node:https';
 import { config } from '../lib/env.ts';
 import { logger } from '../lib/log.ts';
+import { postJson } from '../lib/rpc-post.ts';
 import type { LaunchEvent } from './types.ts';
 
 const log = logger('robinhood');
@@ -42,32 +42,6 @@ const FACTORIES = [
 export const ODYSSEY_POOL_MIGRATED = '0xa915d8c1403c8f95a7c6318211de8aabf6f0bfb612a7624e84ebb91a9be1c21c';
 
 type Log = { address: string; topics: string[]; data: string; blockNumber: string; transactionHash: string };
-
-/**
- * The public RPC sits behind Cloudflare, which challenges undici's fetch
- * fingerprint but lets Node's https client through, so RPC calls use https.
- */
-function postJson<R>(url: string, payload: unknown): Promise<R> {
-  const body = JSON.stringify(payload);
-  return new Promise((resolve, reject) => {
-    const req = httpsRequest(url, { method: 'POST', headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) }, timeout: 20_000 }, (res) => {
-      let data = '';
-      res.setEncoding('utf8');
-      res.on('data', (c) => (data += c));
-      res.on('end', () => {
-        if ((res.statusCode ?? 0) >= 400) return reject(new Error(`HTTP ${res.statusCode} from ${new URL(url).host}`));
-        try {
-          resolve(JSON.parse(data) as R);
-        } catch {
-          reject(new Error(`invalid JSON from ${new URL(url).host}`));
-        }
-      });
-    });
-    req.on('timeout', () => req.destroy(new Error(`timeout calling ${new URL(url).host}`)));
-    req.on('error', reject);
-    req.end(body);
-  });
-}
 
 let rpcIndex = 0;
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {

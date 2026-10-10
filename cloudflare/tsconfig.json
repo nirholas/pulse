@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "types": ["@cloudflare/workers-types", "node"], "lib": ["es2023"] },
+  "include": ["src", "../src/**/*.ts"],
+  "exclude": ["../src/server", "../src/main.ts", "../src/db", "../src/report"]
+}
