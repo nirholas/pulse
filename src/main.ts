@@ -12,10 +12,16 @@ import { startServer } from './server/app.ts';
 const log = logger('pulse');
 const args = new Set(process.argv.slice(2));
 const once = args.has('--once');
+const migrateOnly = args.has('--migrate');
 const withStream = config.streams && !args.has('--no-stream') && !once;
 const withServer = !args.has('--no-server') && !once;
 
 await migrate();
+if (migrateOnly) {
+  log.info('schema up to date');
+  await (await db()).close();
+  process.exit(0);
+}
 const stream = withStream ? new SolanaStream() : null;
 if (stream) await stream.start();
 if (withServer) startServer({ stream });

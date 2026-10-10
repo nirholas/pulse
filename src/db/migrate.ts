@@ -1,13 +1,13 @@
 // Applies src/db/migrations/*.sql in name order, once each, recorded in
 // schema_migrations. Runs automatically on startup; also `npm run db:migrate`.
 import { readdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { assetDir } from '../lib/paths.ts';
 import { db } from './client.ts';
 import { logger } from '../lib/log.ts';
 
 const log = logger('migrate');
-const dir = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
+const dir = assetDir('migrations', 'src/db/migrations');
 
 export async function migrate(): Promise<void> {
   const d = await db();
@@ -44,10 +44,4 @@ async function enableTimescale(): Promise<void> {
     await d.exec(`alter table ${table} set (timescaledb.compress, timescaledb.compress_segmentby = 'chain')`);
     await d.exec(`select add_compression_policy('${table}', interval '${after}')`);
   }
-}
-
-if (import.meta.url === `file://${process.argv[1]}`) {
-  await migrate();
-  log.info('schema up to date');
-  process.exit(0);
 }

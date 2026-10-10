@@ -2,12 +2,13 @@
 // firehose stats from the running stream. The built dashboard in dist/web is
 // served from the same port.
 import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { join, relative } from 'node:path';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { config } from '../lib/env.ts';
+import { assetDir } from '../lib/paths.ts';
 import { logger } from '../lib/log.ts';
 import { db } from '../db/client.ts';
 import type { SolanaStream } from '../collector/solana-stream.ts';
@@ -173,10 +174,11 @@ export function createApp(deps: { stream: SolanaStream | null }): Hono {
     return c.json({ table, rows: await (await db()).query(`select * from ${table} limit ${limit}`) });
   });
 
-  const webDir = resolve(process.cwd(), 'dist/web');
+  const webDir = assetDir('web', 'dist/web');
   if (existsSync(webDir)) {
-    app.use('/*', serveStatic({ root: './dist/web' }));
-    app.get('*', serveStatic({ path: './dist/web/index.html' }));
+    const rel = relative(process.cwd(), webDir) || '.';
+    app.use('/*', serveStatic({ root: rel }));
+    app.get('*', serveStatic({ path: join(rel, 'index.html') }));
   } else {
     app.get('/', (c) => c.text('Pulse API is running. Build the dashboard with `npm run build`, or run `npm run dev` for the live dev server.'));
   }
