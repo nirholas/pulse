@@ -4,6 +4,7 @@ import { startRouter, type Route } from './router.ts';
 import { ago } from './ui.ts';
 
 const NAV = [
+  ['board', '#/board', 'Board'],
   ['command', '#/', 'Command'],
   ['markets', '#/markets', 'Markets'],
   ['solana', '#/solana', 'Solana'],
@@ -14,6 +15,7 @@ const NAV = [
 ] as const;
 
 const routes: Route[] = [
+  { pattern: /^\/board$/, nav: 'board', page: async () => (await import('./pages/board.ts')).board },
   { pattern: /^\/$/, nav: 'command', page: async () => (await import('./pages/command.ts')).command },
   { pattern: /^\/solana$/, nav: 'solana', page: async () => (await import('./pages/solana.ts')).solana },
   { pattern: /^\/markets$/, nav: 'markets', page: async () => (await import('./pages/markets.ts')).markets },

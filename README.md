@@ -56,6 +56,10 @@ Other commands:
 | `npm run report -- --no-send --print` | Build today's newsletter without sending it |
 | `npm test`, `npm run typecheck` | Tests and types |
 
+## Permanent archive in git
+
+Set `ARCHIVE_REPO` to a repo you own (`gh repo create <you>/pulse-data --private`) and `ARCHIVE_TOKEN` to a token with contents:write. Each finished UTC day is then exported to that repo as gzip JSONL, a runner digest (`runners/YYYY-MM-DD.json`) and, with `ANTHROPIC_API_KEY`, an AI brief on what ran and what technology is being built. The repo is the history: `pulse archive --restore` rebuilds a database from it, and an agent can read it directly or call the `pulse_runners` MCP tool. See [docs/archive.md](docs/archive.md).
+
 ## Telegram newsletter
 
 Create a bot with @BotFather, add it to your channel as an admin, and set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` (for example `@my_channel`). The issue is generated once a day at `REPORT_HOUR` in `REPORT_TIMEZONE`, stored first, then sent. Set `ANTHROPIC_API_KEY` to add a short written overview that is constrained to the day's data.
@@ -73,7 +77,7 @@ src/intel       classification, lifecycle status, wallet scoring
 src/report      newsletter data, rendering, Telegram, narrative
 src/server      Hono API and static dashboard hosting
 src/db          migrations and the Postgres/PGlite client
-web             Vite dashboard (overview, tokens, token detail, launches, wallets, newsletter)
+web             Vite dashboard (board, command, markets, solana, tokens, token detail, launches, wallets, newsletter)
 ```
 
 Token names, symbols and descriptions are untrusted on-chain input. The dashboard escapes every interpolation and Pulse never acts on them.
