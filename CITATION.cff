@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "pulse"
+abstract: "Open-source market intelligence for the Solana and Robinhood Chain trenches: launches, runners, wallets, daily Telegram newsletter, dashboard, MCP server and a Postgres archive for trading bots."
+license: MIT
+repository-code: "https://github.com/nirholas/pulse"
+url: "https://three.ws"
+authors:
+  - name: three.ws
+    website: "https://three.ws"
