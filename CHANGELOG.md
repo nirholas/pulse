@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Git archive: every finished UTC day is exported to compressed JSONL, a runner digest and an AI brief, committed to a git repo you own (`docs/archive.md`). `pulse archive`, `pulse archive --restore`, `GET /api/runners` and the `pulse_runners` MCP tool.
 - Cloudflare deployment: Worker, D1, Durable Object firehose and static dashboard (`cloudflare/README.md`).
 - New Command home page: market ticker, 100-coin heatmap, sentiment gauge, breadth histogram, market map, sector treemap, live market TV, Solana band, derivatives band, DeFi band, prediction markets and news. Each panel loads and refreshes on its own.
 - Solana overview moved to `#/solana`; Markets page fixed (news sentiment, source list).

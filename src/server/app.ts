@@ -1,6 +1,9 @@
 // Dashboard API and static host. Read-only over the archive, plus live
 // firehose stats from the running stream. The built dashboard in dist/web is
 // served from the same port.
+import { buildRunnerDigest } from '../archive/runners.ts';
+import { yesterdayUtc } from '../archive/archive.ts';
+import { isDay } from '../archive/tables.ts';
 import { existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { serve } from '@hono/node-server';
@@ -165,6 +168,15 @@ export function createApp(deps: { stream: SolanaStream | null }): Hono {
     return row ? c.json(row) : c.json({ error: 'no report for that day' }, 404);
   });
   app.get('/api/reports/:day/live', async (c) => c.json(await buildDailyData(c.req.param('day'))));
+
+  // Runner digest for any UTC day with snapshots; defaults to the last finished day. ?tech=1 keeps tech sectors only.
+  app.get('/api/runners', async (c) => {
+    const day = c.req.query('day') ?? yesterdayUtc();
+    if (!isDay(day)) return c.json({ error: 'day must be YYYY-MM-DD (UTC)' }, 400);
+    const digest = await buildRunnerDigest(day);
+    if (c.req.query('tech')) digest.runners = digest.runners.filter((r) => r.isTech);
+    return c.json(digest);
+  });
 
   app.get('/api/export/:table', async (c) => {
     const allowed = ['tokens', 'token_snapshots', 'trades', 'launch_events', 'wallets', 'wallet_scores', 'wallet_positions', 'market_snapshots', 'list_appearances'];

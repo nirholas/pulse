@@ -39,6 +39,11 @@ export const config = {
   anthropicApiKey: str('ANTHROPIC_API_KEY'),
   anthropicModel: str('ANTHROPIC_MODEL', 'claude-sonnet-5-5'),
   streams: str('STREAMS', 'on') !== 'off',
+  archiveRepo: str('ARCHIVE_REPO'),
+  archiveToken: str('ARCHIVE_TOKEN', str('GITHUB_TOKEN')),
+  archiveDir: str('ARCHIVE_DIR', resolve(process.cwd(), 'data/archive')),
+  archiveBranch: str('ARCHIVE_BRANCH', 'main'),
+  archiveBackfillDays: int('ARCHIVE_BACKFILL_DAYS', 30),
 };
 
 export type Config = typeof config;
