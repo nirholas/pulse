@@ -18,18 +18,23 @@ export const token: Page = async (el, [chain = '', address = ''], onCleanup) => 
   }
   const t = d.token;
   const fromAth = t.ath_mcap && t.last_mcap ? (t.last_mcap / t.ath_mcap - 1) * 100 : null;
-  const stat = (l: string, v: unknown) => html`<div class="card kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  const stat = (l: string, v: unknown) => html`<div class="st"><div class="l">${l}</div><div class="v">${v}</div></div>`;
   mount(
     el,
-    html`<p><a href="#/tokens">Tokens</a> / ${t.symbol || short(address)}</p>
-    <h1>${t.symbol || short(address)} <span class="mut">${t.name ?? ''}</span> ${statusPill(t.status)}</h1>
-    <p class="sub"><span class="pill">${t.category}</span> ${t.category && t.category !== 'unclassified' ? html`tech score ${Math.round((t.tech_score ?? 0) * 100)} · ` : raw('')}${t.launchpad ?? 'no launchpad'} · first seen ${ago(t.first_seen)} · <a href="${dex(chain, address)}" target="_blank" rel="noopener">DexScreener</a> · <a href="${explorer(chain, address)}" target="_blank" rel="noopener">Explorer</a></p>
+    html`<p class="crumb"><a href="#/tokens">Tokens</a> / ${t.symbol || short(address)}</p>
+    <section class="card coinhead">
+      <div class="coinid">
+        ${t.image ? html`<img class="coinimg" src="${t.image}" alt="" referrerpolicy="no-referrer" loading="lazy">` : html`<span class="coinimg ph" aria-hidden="true">${(t.symbol || '?').slice(0, 1).toUpperCase()}</span>`}
+        <div class="coinname"><h1>${t.symbol || short(address)} <span class="mut">${t.name ?? ''}</span> ${statusPill(t.status)}</h1>
+          <p class="sub"><span class="pill">${t.category}</span> ${t.category && t.category !== 'unclassified' ? html`tech ${Math.round((t.tech_score ?? 0) * 100)} · ` : raw('')}${t.launchpad ?? 'no launchpad'} · seen ${ago(t.first_seen)} · <button type="button" class="copy" data-copy="${address}" title="Copy address">${short(address)} copy</button> · <a href="${dex(chain, address)}" target="_blank" rel="noopener">DexScreener</a> · <a href="${explorer(chain, address)}" target="_blank" rel="noopener">Explorer</a></p></div>
+      </div>
+      <div class="coinprice"><div class="mc">${usd(t.last_mcap)}</div><div class="mut">market cap · 24h ${pct(t.last_change_24h)}</div></div>
+      <div class="statstrip">
+        ${stat('Price', usd(t.last_price))}${stat('24h volume', usd(t.last_volume_24h))}${stat('Liquidity', usd(t.last_liquidity))}${stat('Holders', int(t.last_holders))}${stat('ATH mcap', usd(t.ath_mcap))}${stat('From ATH', pct(fromAth))}${stat('Peak 24h vol', usd(t.peak_volume_24h))}
+      </div>
+    </section>
     ${t.description ? html`<p class="mut">${t.description}</p>` : raw('')}
     ${t.last_mcap == null && t.last_volume_24h == null && t.last_liquidity == null ? html`<div class="card notice" role="status"><b>Awaiting the first market snapshot.</b> This token was just discovered. Prices, liquidity and holders fill in on the next collection cycle (every 5 minutes). Live trade flow below is already streaming.</div>` : raw('')}
-    <div class="grid g4">
-      ${stat('Market cap', usd(t.last_mcap))}${stat('24h change', pct(t.last_change_24h))}${stat('24h volume', usd(t.last_volume_24h))}${stat('Liquidity', usd(t.last_liquidity))}
-      ${stat('Holders', int(t.last_holders))}${stat('ATH mcap', usd(t.ath_mcap))}${stat('From ATH', pct(fromAth))}${stat('Peak 24h volume', usd(t.peak_volume_24h))}
-    </div>
     <section class="card" style="margin-top:14px"><div class="tabs" role="group" aria-label="Timeframe">${TFS.map((tf) => html`<button type="button" data-tf="${tf}" aria-pressed="${tf === '15m'}">${tf}</button>`)}</div><div class="chart tall" id="candles"></div><p class="mut" id="csrc"></p></section>
     <div class="grid g2" style="margin-top:14px">
       <section class="card"><h2>Market cap and liquidity (our snapshots)</h2><div class="chart" id="snap"></div></section>
@@ -43,6 +48,13 @@ export const token: Page = async (el, [chain = '', address = ''], onCleanup) => 
       <section><h2>Discovery lists and events</h2>${d.lists.length || d.events.length ? html`<div class="tablewrap"><table><thead><tr><th class="l">Source</th><th>Best rank</th><th>Seen</th><th>Last</th></tr></thead><tbody>${d.lists.map((l: any) => html`<tr><td class="l">${l.list}</td><td>${l.best_rank}</td><td>${l.appearances}</td><td>${ago(l.last_ts)}</td></tr>`)}${d.events.map((e: any) => html`<tr><td class="l">${e.kind} ${e.launchpad ?? ''}</td><td></td><td></td><td>${ago(e.ts)}</td></tr>`)}</tbody></table></div>` : empty('Not seen on any list yet.')}</section>
     </div>`,
   );
+  el.querySelector<HTMLButtonElement>('[data-copy]')?.addEventListener('click', (e) => {
+    const b = e.currentTarget as HTMLButtonElement;
+    void navigator.clipboard?.writeText(b.dataset.copy!).then(() => {
+      b.textContent = 'copied';
+      setTimeout(() => (b.textContent = `${short(address)} copy`), 1200);
+    });
+  });
   const cleaners: (() => void)[] = [];
   onCleanup(() => cleaners.forEach((c) => c()));
   if (chain === 'solana') void loadRisk(el.querySelector('#risk') as HTMLElement, address, cleaners);

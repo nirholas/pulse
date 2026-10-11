@@ -20,6 +20,7 @@ import { geckoOhlcv } from '../sources/geckoterminal.ts';
 import { pumpCoin } from '../sources/pumpfun.ts';
 import { STATUS_RULES } from '../intel/status.ts';
 import { buildDailyData } from '../report/data.ts';
+import { mountMarketIntel } from '../intel/market-intel.ts';
 
 const log = logger('server');
 
@@ -187,6 +188,7 @@ export function createApp(deps: { stream: SolanaStream | null }): Hono {
   });
 
   const webDir = assetDir('web', 'dist/web');
+  mountMarketIntel(app);
   if (existsSync(webDir)) {
     const rel = relative(process.cwd(), webDir) || '.';
     app.use('/*', serveStatic({ root: rel }));

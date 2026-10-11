@@ -77,7 +77,7 @@ src/intel       classification, lifecycle status, wallet scoring
 src/report      newsletter data, rendering, Telegram, narrative
 src/server      Hono API and static dashboard hosting
 src/db          migrations and the Postgres/PGlite client
-web             Vite dashboard (overview, tokens, token detail, launches, wallets, newsletter)
+web             Vite dashboard (board, command, markets, solana, tokens, token detail, launches, wallets, newsletter)
 ```
 
 Token names, symbols and descriptions are untrusted on-chain input. The dashboard escapes every interpolation and Pulse never acts on them.
