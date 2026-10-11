@@ -4,7 +4,9 @@ import { startRouter, type Route } from './router.ts';
 import { ago } from './ui.ts';
 
 const NAV = [
-  ['overview', '#/', 'Overview'],
+  ['command', '#/', 'Command'],
+  ['markets', '#/markets', 'Markets'],
+  ['solana', '#/solana', 'Solana'],
   ['tokens', '#/tokens', 'Tokens'],
   ['launches', '#/launches', 'Launches'],
   ['wallets', '#/wallets', 'Wallets'],
@@ -12,7 +14,9 @@ const NAV = [
 ] as const;
 
 const routes: Route[] = [
-  { pattern: /^\/$/, nav: 'overview', page: async () => (await import('./pages/overview.ts')).overview },
+  { pattern: /^\/$/, nav: 'command', page: async () => (await import('./pages/command.ts')).command },
+  { pattern: /^\/solana$/, nav: 'solana', page: async () => (await import('./pages/solana.ts')).solana },
+  { pattern: /^\/markets$/, nav: 'markets', page: async () => (await import('./pages/markets.ts')).markets },
   { pattern: /^\/tokens$/, nav: 'tokens', page: async () => (await import('./pages/tokens.ts')).tokens },
   { pattern: /^\/token\/([^/]+)\/([^/]+)$/, nav: 'tokens', page: async () => (await import('./pages/token.ts')).token },
   { pattern: /^\/launches$/, nav: 'launches', page: async () => (await import('./pages/launches.ts')).launches },
