@@ -3,14 +3,14 @@ import { chart, lineOption } from '../charts.ts';
 import { empty, errorBox, html, int, mount, pct, raw, short, skeleton, tokenCell, usd } from '../ui.ts';
 import type { Page } from '../router.ts';
 
-export const overview: Page = async (el, _p, onCleanup) => {
-  mount(el, html`<h1>Market overview</h1><p class="sub">Solana and Robinhood Chain, refreshed every few minutes.</p>${skeleton(8)}`);
+export const solana: Page = async (el, _p, onCleanup) => {
+  mount(el, html`<h1>Solana</h1><p class="sub">Solana and Robinhood Chain, refreshed every few minutes.</p>${skeleton(8)}`);
   let o: any;
   try {
     o = await api('/overview');
   } catch (e) {
     mount(el, errorBox((e as Error).message));
-    el.querySelector('[data-retry]')?.addEventListener('click', () => overview(el, [], onCleanup));
+    el.querySelector('[data-retry]')?.addEventListener('click', () => solana(el, [], onCleanup));
     return;
   }
   const latest = (c: string) => o.markets.find((m: any) => m.chain === c);
@@ -21,7 +21,7 @@ export const overview: Page = async (el, _p, onCleanup) => {
   const statusCount = (chain: string, status: string) => o.status.find((s: any) => s.chain === chain && s.status === status)?.tokens ?? 0;
   mount(
     el,
-    html`<h1>Market overview</h1><p class="sub">Trench market cap excludes tokens above $1B (majors, stables, xStocks).</p>
+    html`<h1>Solana</h1><p class="sub">Trench market cap excludes tokens above $1B (majors, stables, xStocks).</p>
     <div class="grid g4">
       ${kpi('Solana trench mcap', usd(sol?.total_mcap), `${int(sol?.tracked_tokens)} tokens tracked`)}
       ${kpi('Solana 24h volume', usd(sol?.total_volume_24h), `${int(sol?.launches_1h)} launches last hour`)}

@@ -31,10 +31,12 @@ export function usd(v: number | null | undefined): string {
   if (v === null || v === undefined || !Number.isFinite(v)) return 'n/a';
   const a = Math.abs(v);
   if (a === 0) return '$0';
-  if (a >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
-  if (a >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
-  if (a >= 1e3) return `$${(v / 1e3).toFixed(1)}K`;
-  return `$${v.toFixed(a >= 1 ? 2 : a >= 0.01 ? 4 : 8)}`;
+  const sign = v < 0 ? '-' : '';
+  if (a >= 1e12) return `${sign}$${(a / 1e12).toFixed(2)}T`;
+  if (a >= 1e9) return `${sign}$${(a / 1e9).toFixed(2)}B`;
+  if (a >= 1e6) return `${sign}$${(a / 1e6).toFixed(2)}M`;
+  if (a >= 1e3) return `${sign}$${(a / 1e3).toFixed(1)}K`;
+  return `${sign}$${a.toFixed(a >= 1 ? 2 : a >= 0.01 ? 4 : 8)}`;
 }
 
 export function pct(v: number | null | undefined, digits = 1): Raw {
@@ -67,3 +69,20 @@ export function tokenCell(t: { chain: string; address: string; symbol?: string |
 export const statusPill = (s: string) => html`<span class="pill ${s}">${s}</span>`;
 export const dex = (chain: string, address: string) => `https://dexscreener.com/${chain}/${address}`;
 export const explorer = (chain: string, address: string) => (chain === 'solana' ? `https://solscan.io/token/${address}` : `https://robinhoodchain.blockscout.com/token/${address}`);
+
+/** Bare X handle from a profile url or @handle; null when the value is not an X profile. */
+export function xHandle(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const s = v.trim();
+  if (/^https?:\/\//i.test(s)) {
+    try {
+      const u = new URL(s);
+      if (!/(^|\.)(x|twitter)\.com$/i.test(u.hostname)) return null;
+      return u.pathname.split('/').filter(Boolean)[0] ?? null;
+    } catch {
+      return null;
+    }
+  }
+  const h = s.replace(/^@/, '');
+  return /^\w{1,30}$/.test(h) ? h : null;
+}

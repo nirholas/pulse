@@ -8,6 +8,7 @@ import { geckoOhlcv } from '../../src/sources/geckoterminal.ts';
 import { pumpCoin } from '../../src/sources/pumpfun.ts';
 import { DAY, HOUR, ago, hydrate, one, query } from './db.ts';
 import type { FirehoseStatus } from './firehose.ts';
+import { mountMarketIntel } from './market-intel.ts';
 
 export interface StreamPort {
   status(): Promise<FirehoseStatus>;
@@ -128,12 +129,26 @@ export function createApi(stream: () => StreamPort): Hono {
     const map = { '1m': ['minute', 1], '5m': ['minute', 5], '15m': ['minute', 15], '1h': ['hour', 1], '4h': ['hour', 4], '1d': ['day', 1] } as const;
     const [unit, agg] = map[tf] ?? map['15m'];
     const pair = await one<{ address: string }>(`select address from pairs where chain = ?1 and token_address = ?2 order by created_at desc nulls last limit 1`, [chain, address]);
-    if (!pair) return c.json({ candles: [], source: 'none' });
-    try {
-      return c.json({ candles: await geckoOhlcv(chain === 'solana' ? 'solana' : 'robinhood', pair.address, unit, agg, 300), source: 'geckoterminal', pool: pair.address });
-    } catch (err) {
-      return c.json({ candles: [], source: 'unavailable', error: (err as Error).message });
+    let geckoError: string | undefined;
+    if (pair) {
+      try {
+        const candles = await geckoOhlcv(chain === 'solana' ? 'solana' : 'robinhood', pair.address, unit, agg, 300);
+        if (candles.length) return c.json({ candles, source: 'geckoterminal', pool: pair.address });
+      } catch (err) {
+        geckoError = (err as Error).message;
+      }
     }
+    let pool = pair?.address ?? null;
+    if (!pool && chain === 'solana') {
+      try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${address}`, { signal: AbortSignal.timeout(10_000) });
+        const body = (await res.json()) as { pairs?: { chainId: string; pairAddress: string; liquidity?: { usd?: number } }[] };
+        pool = (body.pairs ?? []).filter((x) => x.chainId === 'solana').sort((x, y) => (y.liquidity?.usd ?? 0) - (x.liquidity?.usd ?? 0))[0]?.pairAddress ?? null;
+      } catch (err) {
+        geckoError = `${geckoError ? `${geckoError}; ` : ''}${(err as Error).message}`;
+      }
+    }
+    return c.json({ candles: [], source: 'none', pool, error: geckoError });
   });
 
   app.get('/api/pump/:mint', async (c) => c.json((await pumpCoin(c.req.param('mint'))) ?? { error: 'not found' }));
@@ -183,6 +198,8 @@ export function createApi(stream: () => StreamPort): Hono {
     const limit = clampInt(c.req.query('limit'), 10_000, 1, 100_000);
     return c.json({ table, rows: await query(`select * from ${table} limit ${limit}`) });
   });
+
+  mountMarketIntel(app);
 
   return app;
 }

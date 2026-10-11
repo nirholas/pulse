@@ -1,6 +1,8 @@
 import { api } from '../api.ts';
 import { empty, errorBox, escape, html, int, mount, pct, raw, skeleton, statusPill, tokenCell, usd } from '../ui.ts';
 import type { Page } from '../router.ts';
+import { chart } from '../charts.ts';
+import { TRENCH_EDGES, bubbleTokens, donutOption, histogram } from '../viz.ts';
 
 const PRESETS: { id: string; label: string; query: Record<string, string> }[] = [
   { id: 'runners', label: 'Runners', query: { status: 'running', sort: 'change' } },
@@ -25,6 +27,7 @@ export const tokens: Page = async (el, params, onCleanup) => {
       <select id="minMcap" aria-label="Minimum market cap"><option value="0">Any mcap</option><option value="10000">$10K+</option><option value="50000">$50K+</option><option value="250000">$250K+</option><option value="1000000">$1M+</option></select>
       <span class="mut" id="count"></span>
     </div>
+    <div class="cols tokviz" id="viz" hidden><section class="panel"><header><h3>Liquidity vs 24h move</h3></header><div class="chartbox short" data-v="bubble"></div></section><section class="panel"><header><h3>24h move distribution</h3></header><div class="chartbox short" data-v="hist"></div></section><section class="panel"><header><h3>Lifecycle mix</h3></header><div class="chartbox short" data-v="mix"></div></section></div>
     <div id="results"></div>`,
   );
   (el.querySelector('#chain') as HTMLSelectElement).value = state.chain;
@@ -32,6 +35,25 @@ export const tokens: Page = async (el, params, onCleanup) => {
   const results = el.querySelector('#results')!;
   let timer: ReturnType<typeof setTimeout>;
   let ctl = new AbortController();
+  let disposers: (() => void)[] = [];
+  const viz = el.querySelector('#viz') as HTMLElement;
+
+  async function drawViz(rows: any[]) {
+    disposers.forEach((d) => d());
+    disposers = [];
+    const live = rows.filter((t) => t.last_liquidity > 0 && t.last_change_24h != null);
+    viz.hidden = live.length < 3;
+    if (viz.hidden) return;
+    const mixCount = new Map<string, number>();
+    for (const t of rows) mixCount.set(t.status, (mixCount.get(t.status) ?? 0) + 1);
+    const at = (v: string) => viz.querySelector(`[data-v="${v}"]`) as HTMLElement;
+    const built = await Promise.all([
+      chart(at('bubble'), (p) => bubbleTokens(live.map((t) => ({ symbol: t.symbol ?? '?', liq: t.last_liquidity, chg: t.last_change_24h, vol: t.last_volume_24h ?? 0, mcap: t.last_mcap ?? 0, status: t.status })), p)),
+      chart(at('hist'), (p) => histogram(live.map((t) => t.last_change_24h), p, TRENCH_EDGES)),
+      chart(at('mix'), (p) => donutOption([...mixCount].map(([name, value]) => ({ name, value })), p, (v) => `${v} tokens`)),
+    ]);
+    disposers = built;
+  }
 
   async function load(append = false) {
     const preset = PRESETS.find((p) => p.id === state.preset) ?? PRESETS[0]!;
@@ -52,6 +74,7 @@ export const tokens: Page = async (el, params, onCleanup) => {
         mount(results, empty('No tokens match these filters.', 'Lower the minimum market cap, switch the view, or let the collector run another cycle.'));
         return;
       }
+      if (!append) void drawViz(data.rows);
       const rows = data.rows.map(
         (t: any) => html`<tr><td class="l">${tokenCell(t)}</td><td>${usd(t.last_mcap)}</td><td>${pct(t.last_change_24h)}</td><td>${usd(t.last_volume_24h)}</td><td>${usd(t.last_liquidity)}</td><td>${int(t.last_holders)}</td><td>${usd(t.ath_mcap)}</td><td class="l"><span class="pill">${t.category}</span></td><td>${Math.round(t.tech_score * 100)}</td><td class="l">${statusPill(t.status)}</td></tr>`,
       );
@@ -92,6 +115,10 @@ export const tokens: Page = async (el, params, onCleanup) => {
     state.minMcap = (e.target as HTMLSelectElement).value;
     void load();
   });
-  onCleanup(() => clearTimeout(timer));
+  onCleanup(() => {
+    clearTimeout(timer);
+    ctl.abort();
+    disposers.forEach((d) => d());
+  });
   await load();
 };
