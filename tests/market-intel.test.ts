@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cached, loaders } from '../cloudflare/src/market-intel.ts';
+import { cached, loaders } from '../src/intel/market-intel.ts';
 
 const store = new Map<string, string>();
 beforeEach(() => {
@@ -39,7 +39,33 @@ describe('cached', () => {
   });
 });
 
+describe('cached without an edge cache (Node server)', () => {
+  it('falls back to process memory', async () => {
+    delete (globalThis as any).caches;
+    const load = vi.fn(async () => ({ n: 3 }));
+    expect(await cached('mem-k', 60, load)).toEqual({ n: 3 });
+    expect(await cached('mem-k', 60, load)).toEqual({ n: 3 });
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(await cached('mem-k2', 60, async () => ({ n: 9 }))).toEqual({ n: 9 });
+  });
+});
+
 describe('loaders', () => {
+  it('staking keeps only staking categories, ranks by TVL and flags Solana', async () => {
+    stubFetch({
+      'api.llama.fi/protocols': [
+        { name: 'Small', category: 'Liquid Staking', tvl: 10, symbol: '-', chains: ['Ethereum'] },
+        { name: 'Big', category: 'Liquid Staking', tvl: 500, symbol: 'BIG', chains: ['Ethereum', 'Solana'], change_1d: 1.5 },
+        { name: 'Dex', category: 'Dexs', tvl: 9999, chains: ['Solana'] },
+        { name: 'Empty', category: 'Restaking', tvl: 0, chains: [] },
+      ],
+    });
+    const d = await loaders.staking();
+    expect(d.protocols.map((p: any) => p.name)).toEqual(['Big', 'Small']);
+    expect(d.protocols[0]).toMatchObject({ solana: true, symbol: 'BIG', chg1d: 1.5 });
+    expect(d.protocols[1]).toMatchObject({ solana: false, symbol: null });
+    expect(d.totalTvl).toBe(510);
+  });
   it('liquidations aggregates sides per symbol and ranks the largest', async () => {
     stubFetch({
       '/api/coin/liquidations': { liquidations: [

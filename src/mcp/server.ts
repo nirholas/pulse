@@ -89,6 +89,13 @@ server.registerTool('pulse_report', {
   annotations: readOnly,
 }, ({ day }) => get(day ? `/reports/${day}` : '/reports'));
 
+server.registerTool('pulse_runners', {
+  title: 'Daily runners',
+  description: 'The runners and breakouts for a UTC day (YYYY-MM-DD, default yesterday): tokens that multiplied from the day open with real volume, each with sector, tech score, multiple, volume, tracked-wallet buyers and a score, plus a sector rollup and the rules used. Set tech=true to keep only tech sectors, which is the fastest way to see what is being built and adopted.',
+  inputSchema: { day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), tech: z.boolean().optional() },
+  annotations: readOnly,
+}, ({ day, tech }) => get('/runners', { day, tech: tech ? '1' : undefined }));
+
 server.registerTool('pulse_export', {
   title: 'Export archive table',
   description: 'Raw rows from an archive table for analysis or model training. Tables: tokens, token_snapshots, trades, launch_events, wallets, wallet_scores, wallet_positions, market_snapshots, list_appearances.',

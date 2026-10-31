@@ -65,6 +65,8 @@
     "start": "node src/main.ts",
     "collect": "node src/main.ts --once",
     "report": "node src/report/cli.ts",
+    "archive": "node src/archive/cli.ts",
+    "archive:restore": "node src/archive/cli.ts --restore",
     "db:migrate": "node src/main.ts --migrate",
     "db:up": "docker compose up -d db",
     "build": "vite build && node scripts/build.mjs",

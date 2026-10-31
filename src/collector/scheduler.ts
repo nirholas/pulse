@@ -18,6 +18,7 @@ import { classifyPending } from '../intel/classify.ts';
 import { updateStatuses } from '../intel/status.ts';
 import { importWallets, scoreWallets } from '../intel/wallets.ts';
 import { publishDailyReport } from '../report/daily.ts';
+import { archiveIfDue } from '../archive/archive.ts';
 
 const log = logger('scheduler');
 
@@ -188,6 +189,7 @@ export async function periodicJobs(stream: SolanaStream | null, force = false): 
       log.error(`daily report: ${(err as Error).message}`);
     }
   }
+  archiveIfDue();
 }
 
 export async function runForever(stream: SolanaStream | null): Promise<never> {

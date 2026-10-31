@@ -1,4 +1,4 @@
-// `pulse` command. Subcommands: start (default), collect, report, migrate, mcp.
+// `pulse` command. Subcommands: start (default), collect, report, archive, migrate, mcp.
 const [, , sub = 'start', ...rest] = process.argv;
 
 const commands: Record<string, { args: string[]; load: () => Promise<unknown> }> = {
@@ -6,6 +6,7 @@ const commands: Record<string, { args: string[]; load: () => Promise<unknown> }>
   collect: { args: ['--once', ...rest], load: () => import('./main.ts') },
   migrate: { args: ['--migrate', ...rest], load: () => import('./main.ts') },
   report: { args: rest, load: () => import('./report/cli.ts') },
+  archive: { args: rest, load: () => import('./archive/cli.ts') },
   mcp: { args: rest, load: () => import('./mcp/server.ts') },
 };
 
@@ -16,6 +17,7 @@ if (!cmd || sub === '--help' || sub === '-h') {
   start     collector, firehose, API and dashboard (default)
   collect   run one collection cycle and exit (add --jobs for wallet import + scoring)
   report    build the daily newsletter (--day YYYY-MM-DD --no-send --print)
+  archive   export finished days to the git archive and push (--day, --no-push, --no-brief, --restore --from <dir>)
   migrate   apply database migrations and exit
   mcp       MCP server over the Pulse API (set PULSE_URL)
 
