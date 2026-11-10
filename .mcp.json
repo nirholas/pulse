@@ -1,0 +1,1 @@
+{"mcpServers": {"pulse": {"command": "npx", "args": ["-y", "-p", "pulse-trenches", "pulse-mcp"], "env": {"PULSE_URL": "${PULSE_URL}"}}}}
