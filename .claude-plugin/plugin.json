@@ -1,0 +1,10 @@
+{
+  "name": "pulse-intel",
+  "version": "0.1.1",
+  "description": "Read-only market intelligence for the Solana and Robinhood Chain trenches through the Pulse MCP server: launches, runners, wallets and daily reports.",
+  "author": {"name": "nirholas"},
+  "repository": "https://github.com/nirholas/pulse",
+  "license": "MIT",
+  "homepage": "https://nirholas.github.io/pulse/",
+  "keywords": ["mcp", "solana", "robinhood-chain", "market-intelligence", "onchain-data", "launches", "wallets"]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "pulse-intel",
+  "owner": {"name": "nirholas"},
+  "description": "Pulse market intelligence MCP server for Solana and Robinhood Chain.",
+  "plugins": [
+    {
+      "name": "pulse-intel",
+      "source": "./",
+      "description": "Read-only market intelligence for the Solana and Robinhood Chain trenches through the Pulse MCP server.",
+      "tags": ["mcp", "solana", "robinhood-chain", "market-intelligence"]
+    }
+  ]
+}
